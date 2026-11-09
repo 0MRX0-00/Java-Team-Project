@@ -1,0 +1,17 @@
+========================================================================================
+  DISASTER RELIEF SUPPLY & EMERGENCY MEDICAL LOGISTICS DISPATCH SYSTEM (DREMLDS)        
+  OFFICIAL EMERGENCY FLIGHT & DISPATCH MANIFEST REPORT                                  
+  Generated At: 2026-11-09 19:53:51
+========================================================================================
+
++----------------+---------------+------------+--------------------------+-----------------+--------+----------------+
+| MISSION ID     | ZONE CODE     | EVENT      | TRANSPORT MODE           | PRIORITY        | DDUS   | STATUS         |
++----------------+---------------+------------+--------------------------+-----------------+--------+----------------+
+| MSN-2026-0005  | ZONE-KA-3001  | ACTIVE     | UNASSIGNED               | MISSION_ABORTED | 48.6   | ABORTED        |
+| MSN-2026-0004  | ZONE-TN-1002  | ACTIVE     | HEAVY_CARGO_HELICOPTER   | PRIORITY_BRAVO  | 77.5   | FLIGHT_GROUNDED |
+| MSN-2026-0003  | ZONE-KL-2001  | ACTIVE     | EMERGENCY_MEDICAL_DRONE  | PRIORITY_ALPHA  | 93.8   | COMPLETED      |
+| MSN-2026-0002  | ZONE-TN-1001  | ACTIVE     | ALL_TERRAIN_RESCUE_TRUCK | PRIORITY_BRAVO  | 86.4   | IN_TRANSIT     |
+| MSN-2026-0001  | ZONE-TN-1003  | ACTIVE     | HEAVY_CARGO_HELICOPTER   | PRIORITY_ALPHA  | 95.2   | COMPLETED      |
++----------------+---------------+------------+--------------------------+-----------------+--------+----------------+
+
+Total Manifested Missions: 5

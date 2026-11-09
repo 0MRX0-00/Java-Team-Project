@@ -1,0 +1,885 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DREMLDS — Disaster Relief &amp; Emergency Medical Logistics Command Center</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+    <!-- Inter Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
+    <!-- Custom Theme -->
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+
+    <!-- Fixed Command Center Sidebar -->
+    <aside class="app-sidebar">
+        <div class="sidebar-brand">
+            <div class="brand-icon">
+                <i class="fa-solid fa-jet-fighter-up"></i>
+            </div>
+            <div class="brand-text">
+                <h1>DREMLDS</h1>
+                <span>Disaster Logistics Hub</span>
+            </div>
+        </div>
+
+        <ul class="sidebar-menu">
+            <li class="nav-category">Command Operations</li>
+            <li class="nav-item">
+                <a href="#dashboard" class="nav-link active" data-tab="tab-dashboard">
+                    <i class="fa-solid fa-chart-line"></i> Dashboard
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="#dispatch" class="nav-link" data-tab="tab-dispatch">
+                    <i class="fa-solid fa-satellite-dish"></i> Dispatch Center
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="#missions" class="nav-link" data-tab="tab-missions">
+                    <i class="fa-solid fa-compass"></i> Mission Tracking
+                </a>
+            </li>
+
+            <li class="nav-category">Phase Logistics</li>
+            <li class="nav-item">
+                <a href="#intake" class="nav-link" data-tab="tab-intake">
+                    <i class="fa-solid fa-triangle-exclamation"></i> Phase 1: Intake
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="#cargo" class="nav-link" data-tab="tab-cargo">
+                    <i class="fa-solid fa-boxes-stacked"></i> Phase 2: Cargo
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="#audit" class="nav-link" data-tab="tab-audit">
+                    <i class="fa-solid fa-clipboard-check"></i> Phase 3: Field Audit
+                </a>
+            </li>
+
+            <li class="nav-category">Fleet &amp; Reports</li>
+            <li class="nav-item">
+                <a href="#fleet" class="nav-link" data-tab="tab-fleet">
+                    <i class="fa-solid fa-helicopter"></i> Transport Fleet
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="#reports" class="nav-link" data-tab="tab-reports">
+                    <i class="fa-solid fa-file-contract"></i> Reports &amp; Analytics
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="#settings" class="nav-link" data-tab="tab-settings">
+                    <i class="fa-solid fa-sliders"></i> System Settings
+                </a>
+            </li>
+        </ul>
+
+        <div class="sidebar-footer">
+            <div class="system-status-indicator">
+                <span class="status-dot"></span>
+                <span>SYSTEM ACTIVE</span>
+            </div>
+            <div>DREMLDS v1.0.0 | Windows 11 / OCI</div>
+        </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="main-wrapper">
+        <!-- Top Bar -->
+        <header class="top-bar">
+            <div class="top-title">
+                <h2 id="view-title">Disaster Operations Command Center</h2>
+                <p id="view-subtitle">Real-time situational telemetry and emergency dispatch pipeline</p>
+            </div>
+            <div class="top-actions">
+                <button class="btn-secondary-custom" id="btn-refresh-data" title="Refresh Telemetry">
+                    <i class="fa-solid fa-arrows-rotate"></i> Refresh Data
+                </button>
+                <button class="btn-primary-custom" id="btn-quick-import" title="Import data/relief_requests.csv">
+                    <i class="fa-solid fa-file-import"></i> Bulk Ingest CSV
+                </button>
+            </div>
+        </header>
+
+        <!-- Notification Banner -->
+        <div id="live-alert-container"></div>
+
+        <!-- ================================================================= -->
+        <!-- TAB 1: DASHBOARD -->
+        <!-- ================================================================= -->
+        <section id="tab-dashboard" class="tab-view active">
+            <!-- 8 Real Database Statistics Cards -->
+            <div class="row g-3 mb-4">
+                <div class="col-xl-3 col-md-6">
+                    <div class="stat-card">
+                        <div class="stat-content">
+                            <p>Disaster Zones</p>
+                            <h3 id="stat-zones">0</h3>
+                        </div>
+                        <div class="stat-icon icon-blue">
+                            <i class="fa-solid fa-mountain-city"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-xl-3 col-md-6">
+                    <div class="stat-card">
+                        <div class="stat-content">
+                            <p>Active Missions</p>
+                            <h3 id="stat-active">0</h3>
+                        </div>
+                        <div class="stat-icon icon-cyan">
+                            <i class="fa-solid fa-plane-departure"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-xl-3 col-md-6">
+                    <div class="stat-card">
+                        <div class="stat-content">
+                            <p>Completed Missions</p>
+                            <h3 id="stat-completed">0</h3>
+                        </div>
+                        <div class="stat-icon icon-green">
+                            <i class="fa-solid fa-circle-check"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-xl-3 col-md-6">
+                    <div class="stat-card">
+                        <div class="stat-content">
+                            <p>Relief Coverage</p>
+                            <h3 id="stat-coverage">0.0%</h3>
+                        </div>
+                        <div class="stat-icon icon-purple">
+                            <i class="fa-solid fa-shield-heart"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-xl-3 col-md-6">
+                    <div class="stat-card">
+                        <div class="stat-content">
+                            <p>Available Fleet</p>
+                            <h3 id="stat-assets">0</h3>
+                        </div>
+                        <div class="stat-icon icon-blue">
+                            <i class="fa-solid fa-truck-monster"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-xl-3 col-md-6">
+                    <div class="stat-card">
+                        <div class="stat-content">
+                            <p>Pending Requests</p>
+                            <h3 id="stat-pending">0</h3>
+                        </div>
+                        <div class="stat-icon icon-amber">
+                            <i class="fa-solid fa-hourglass-half"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-xl-3 col-md-6">
+                    <div class="stat-card">
+                        <div class="stat-content">
+                            <p>Grounded Aircraft</p>
+                            <h3 id="stat-grounded">0</h3>
+                        </div>
+                        <div class="stat-icon icon-red">
+                            <i class="fa-solid fa-cloud-bolt"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-xl-3 col-md-6">
+                    <div class="stat-card">
+                        <div class="stat-content">
+                            <p>Aborted Missions</p>
+                            <h3 id="stat-aborted">0</h3>
+                        </div>
+                        <div class="stat-icon icon-red">
+                            <i class="fa-solid fa-ban"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Charts Section -->
+            <div class="row g-3 mb-4">
+                <div class="col-lg-6">
+                    <div class="panel-card h-100">
+                        <div class="panel-header">
+                            <div class="panel-title">
+                                <i class="fa-solid fa-chart-pie"></i> Disaster Zone Distribution
+                            </div>
+                        </div>
+                        <div style="height: 250px;">
+                            <canvas id="chart-event-types"></canvas>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-6">
+                    <div class="panel-card h-100">
+                        <div class="panel-header">
+                            <div class="panel-title">
+                                <i class="fa-solid fa-chart-column"></i> Fleet Transport Category Distribution
+                            </div>
+                        </div>
+                        <div style="height: 250px;">
+                            <canvas id="chart-transport-categories"></canvas>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-6">
+                    <div class="panel-card h-100">
+                        <div class="panel-header">
+                            <div class="panel-title">
+                                <i class="fa-solid fa-chart-simple"></i> Mission Priority Class Distribution
+                            </div>
+                        </div>
+                        <div style="height: 250px;">
+                            <canvas id="chart-mission-priorities"></canvas>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-6">
+                    <div class="panel-card h-100">
+                        <div class="panel-header">
+                            <div class="panel-title">
+                                <i class="fa-solid fa-percent"></i> Zone-Level Relief Coverage Ratio
+                            </div>
+                        </div>
+                        <div style="height: 250px;">
+                            <canvas id="chart-relief-coverage"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Missions Table -->
+            <div class="panel-card">
+                <div class="panel-header">
+                    <div class="panel-title">
+                        <i class="fa-solid fa-clock-rotate-left"></i> Live Mission Activity
+                    </div>
+                </div>
+                <div class="table-responsive">
+                    <table class="table-custom">
+                        <thead>
+                            <tr>
+                                <th>Mission Code</th>
+                                <th>Target Zone</th>
+                                <th>DDUS Score</th>
+                                <th>Priority</th>
+                                <th>Assigned Transport</th>
+                                <th>Weather Status</th>
+                                <th>Mission Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="dashboard-missions-body">
+                            <tr><td colspan="7" class="text-center py-3 text-muted">Loading live database missions...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================================================================= -->
+        <!-- TAB 2: DISASTER INTAKE (PHASE 1) -->
+        <!-- ================================================================= -->
+        <section id="tab-intake" class="tab-view">
+            <div class="row">
+                <div class="col-lg-7">
+                    <div class="panel-card">
+                        <div class="panel-header">
+                            <div class="panel-title">
+                                <i class="fa-solid fa-file-circle-plus"></i> Phase 1: Disaster Event Intake
+                            </div>
+                        </div>
+                        <form id="form-disaster-intake">
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="form-label">Disaster Zone Code *</label>
+                                    <input type="text" class="form-control-custom" id="intake-zone-code"
+                                           placeholder="e.g. ZONE-TN-1001" required>
+                                    <div class="form-text" id="zone-code-feedback">Must match regex ZONE-[A-Z]{2}-\d{4}</div>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Zone / Sector Name *</label>
+                                    <input type="text" class="form-control-custom" id="intake-zone-name"
+                                           placeholder="e.g. Cuddalore Coastal Sector" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Disaster Event Type *</label>
+                                    <select class="form-control-custom" id="intake-event-type" required>
+                                        <option value="FLOOD">FLOOD</option>
+                                        <option value="QUAKE">QUAKE</option>
+                                        <option value="CYCLONE">CYCLONE</option>
+                                        <option value="LANDSLIDE">LANDSLIDE</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Affected Population Count *</label>
+                                    <input type="number" class="form-control-custom" id="intake-population"
+                                           min="1" placeholder="e.g. 45000" required>
+                                </div>
+
+                                <div class="col-md-4">
+                                    <label class="form-label">Medical Urgency (1.0 - 10.0) *</label>
+                                    <input type="number" step="0.1" min="1.0" max="10.0" class="form-control-custom"
+                                           id="intake-urgency" placeholder="e.g. 9.5" required>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Terrain Risk (0.0 - 100.0) *</label>
+                                    <input type="number" step="0.1" min="0.0" max="100.0" class="form-control-custom"
+                                           id="intake-terrain" placeholder="e.g. 78.0" required>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Road Accessibility (0.0 - 100.0) *</label>
+                                    <input type="number" step="0.1" min="0.0" max="100.0" class="form-control-custom"
+                                           id="intake-road" placeholder="e.g. 22.0" required>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label class="form-label">Weather Severity Index (0.0 - 10.0) *</label>
+                                    <input type="number" step="0.1" min="0.0" max="10.0" class="form-control-custom"
+                                           id="intake-weather" placeholder="e.g. 5.5" required>
+                                    <div class="form-text">Ceilings: Drone &le; 5.0, Heli &le; 7.0, Truck &le; 8.5</div>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Flight Distance from Hub (KM) *</label>
+                                    <input type="number" step="0.1" min="1.0" class="form-control-custom"
+                                           id="intake-distance" placeholder="e.g. 185.0" required>
+                                </div>
+
+                                <div class="col-12 mt-4">
+                                    <button type="submit" class="btn-primary-custom">
+                                        <i class="fa-solid fa-save"></i> Register Disaster Zone
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <div class="col-lg-5">
+                    <div class="panel-card">
+                        <div class="panel-header">
+                            <div class="panel-title">
+                                <i class="fa-solid fa-circle-info"></i> Validation Criteria
+                            </div>
+                        </div>
+                        <ul class="text-secondary small mb-3">
+                            <li class="mb-2"><strong>Regex:</strong> <code>ZONE-[A-Z]{2}-\d{4}</code> enforced via Java Pattern &amp; Matcher.</li>
+                            <li class="mb-2"><strong>Valid examples:</strong> ZONE-TN-1001, ZONE-KL-2002, ZONE-KA-3003.</li>
+                            <li class="mb-2"><strong>Population:</strong> Must be strictly positive integer.</li>
+                            <li class="mb-2"><strong>Risk bounds:</strong> Medical Urgency (1–10), Terrain (0–100), Weather (0–10).</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Existing Disaster Zones Table -->
+            <div class="panel-card mt-3">
+                <div class="panel-header">
+                    <div class="panel-title">
+                        <i class="fa-solid fa-list-check"></i> Registered Disaster Zones
+                    </div>
+                </div>
+                <div class="table-responsive">
+                    <table class="table-custom">
+                        <thead>
+                            <tr>
+                                <th>Zone Code</th>
+                                <th>Name / Sector</th>
+                                <th>Event Type</th>
+                                <th>Population</th>
+                                <th>Urgency</th>
+                                <th>Terrain Risk</th>
+                                <th>Weather Index</th>
+                                <th>Flight Dist</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="zones-table-body">
+                            <tr><td colspan="9" class="text-center py-3 text-muted">Loading registered zones...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================================================================= -->
+        <!-- TAB 3: CARGO MANAGEMENT (PHASE 2) -->
+        <!-- ================================================================= -->
+        <section id="tab-cargo" class="tab-view">
+            <div class="row">
+                <div class="col-lg-7">
+                    <div class="panel-card">
+                        <div class="panel-header">
+                            <div class="panel-title">
+                                <i class="fa-solid fa-dolly"></i> Phase 2: Cargo Ingestion &amp; Manifest Staging
+                            </div>
+                        </div>
+                        <form id="form-cargo-ingestion">
+                            <div class="row g-3">
+                                <div class="col-md-12">
+                                    <label class="form-label">Select Target Disaster Zone *</label>
+                                    <select class="form-control-custom" id="cargo-zone-id" required>
+                                        <option value="">-- Choose Disaster Zone --</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Food Kit Count *</label>
+                                    <input type="number" min="0" class="form-control-custom cargo-calc" id="cargo-food" value="500" required>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Water Kit Count *</label>
+                                    <input type="number" min="0" class="form-control-custom cargo-calc" id="cargo-water" value="1000" required>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Plasma Kit Count *</label>
+                                    <input type="number" min="0" class="form-control-custom cargo-calc" id="cargo-plasma" value="40" required>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label class="form-label">Total Payload Weight (KG) *</label>
+                                    <input type="number" step="0.1" min="1" class="form-control-custom" id="cargo-payload" value="2800" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Required Rations Count *</label>
+                                    <input type="number" min="1" class="form-control-custom" id="cargo-rations" value="5000" required>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label class="form-label">Dispatch Staging Location *</label>
+                                    <input type="text" class="form-control-custom" id="cargo-location" value="Chennai Logistics Hub" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Generated Cargo Manifest *</label>
+                                    <input type="text" class="form-control-custom" id="cargo-manifest-str"
+                                           value="FOOD,500,WATER,1000,PLASMA,40" required>
+                                    <div class="form-text">Processed via String.split(","), trim(), format()</div>
+                                </div>
+
+                                <div class="col-12 mt-4">
+                                    <button type="submit" class="btn-primary-custom">
+                                        <i class="fa-solid fa-box-open"></i> Register &amp; Review Cargo
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <div class="col-lg-5">
+                    <div class="panel-card">
+                        <div class="panel-header">
+                            <div class="panel-title">
+                                <i class="fa-solid fa-receipt"></i> Manifest String Validator
+                            </div>
+                        </div>
+                        <p class="text-secondary small">
+                            Manifests are validated using strict Java string operations:
+                        </p>
+                        <pre class="p-3 rounded bg-dark text-info small"><code>FOOD,100,WATER,200,PLASMA,20</code></pre>
+                        <p class="text-muted small">
+                            Validates item existence, positive integers, and rejects duplicate keys or negative quantities.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Existing Cargo Records -->
+            <div class="panel-card mt-3">
+                <div class="panel-header">
+                    <div class="panel-title">
+                        <i class="fa-solid fa-boxes-packing"></i> Registered Relief Cargo Ingestions
+                    </div>
+                </div>
+                <div class="table-responsive">
+                    <table class="table-custom">
+                        <thead>
+                            <tr>
+                                <th>Cargo ID</th>
+                                <th>Target Zone</th>
+                                <th>Food Kits</th>
+                                <th>Water Kits</th>
+                                <th>Plasma Kits</th>
+                                <th>Payload (KG)</th>
+                                <th>Required Rations</th>
+                                <th>Manifest String</th>
+                            </tr>
+                        </thead>
+                        <tbody id="cargo-table-body">
+                            <tr><td colspan="8" class="text-center py-3 text-muted">Loading cargo records...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================================================================= -->
+        <!-- TAB 4: DISPATCH CENTER -->
+        <!-- ================================================================= -->
+        <section id="tab-dispatch" class="tab-view">
+            <div class="row">
+                <div class="col-lg-8">
+                    <div class="panel-card">
+                        <div class="panel-header">
+                            <div class="panel-title">
+                                <i class="fa-solid fa-satellite-dish"></i> Intelligent Dispatch Scheduling Engine
+                            </div>
+                            <button class="btn-secondary-custom" id="btn-bulk-concurrent">
+                                <i class="fa-solid fa-bolt"></i> Run Bulk Concurrent Dispatch (5+ Threads)
+                            </button>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label">Select Active Disaster Zone for Dispatch Evaluation</label>
+                            <div class="input-group">
+                                <select class="form-control-custom" id="dispatch-select-zone">
+                                    <option value="">-- Choose Zone --</option>
+                                </select>
+                                <button class="btn-primary-custom" id="btn-trigger-dispatch">
+                                    <i class="fa-solid fa-paper-plane"></i> Execute Dispatch Worker
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Live Evaluation Card -->
+                        <div id="dispatch-evaluation-result" style="display:none;" class="p-3 rounded bg-dark border border-secondary mb-3">
+                            <h5 class="text-cyan mb-2" id="eval-title">Dispatch Processing Outcome</h5>
+                            <div class="row g-2 small">
+                                <div class="col-md-6"><strong>Mission Code:</strong> <span id="eval-code"></span></div>
+                                <div class="col-md-6"><strong>DDUS Score:</strong> <span id="eval-ddus"></span></div>
+                                <div class="col-md-6"><strong>Priority Classification:</strong> <span id="eval-priority"></span></div>
+                                <div class="col-md-6"><strong>Assigned Transport:</strong> <span id="eval-transport"></span></div>
+                                <div class="col-md-6"><strong>Suitability Score:</strong> <span id="eval-suitability"></span></div>
+                                <div class="col-md-6"><strong>Status:</strong> <span id="eval-status"></span></div>
+                                <div class="col-12 mt-2"><strong>Operational Message:</strong> <span id="eval-msg" class="text-warning"></span></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-4">
+                    <div class="panel-card">
+                        <div class="panel-header">
+                            <div class="panel-title">
+                                <i class="fa-solid fa-calculator"></i> DDUS Algorithmic Parameters
+                            </div>
+                        </div>
+                        <p class="text-secondary small">
+                            <strong>Formula:</strong><br>
+                            <code>DDUS = (Urgency/10)*Wu + (Pop/1000)*Wp + (100-Risk)*Wt</code>
+                        </p>
+                        <ul class="text-muted small">
+                            <li>Wu (Urgency Weight): <span class="text-info">35.0</span></li>
+                            <li>Wp (Population Weight): <span class="text-info">35.0</span></li>
+                            <li>Wt (Terrain Weight): <span class="text-info">30.0</span></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================================================================= -->
+        <!-- TAB 5: MISSION TRACKING -->
+        <!-- ================================================================= -->
+        <section id="tab-missions" class="tab-view">
+            <div class="panel-card">
+                <div class="panel-header">
+                    <div class="panel-title">
+                        <i class="fa-solid fa-compass"></i> Real-Time Mission Telemetry &amp; Status
+                    </div>
+                </div>
+                <div class="table-responsive">
+                    <table class="table-custom">
+                        <thead>
+                            <tr>
+                                <th>Mission Code</th>
+                                <th>Zone Code</th>
+                                <th>DDUS Score</th>
+                                <th>Priority</th>
+                                <th>Transport Category</th>
+                                <th>Suitability</th>
+                                <th>Estimated Duration</th>
+                                <th>Weather Safe</th>
+                                <th>Status</th>
+                                <th>Notes / Rejection</th>
+                            </tr>
+                        </thead>
+                        <tbody id="missions-full-table-body">
+                            <tr><td colspan="10" class="text-center py-3 text-muted">Loading missions...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================================================================= -->
+        <!-- TAB 6: DELIVERY AUDIT (PHASE 3) -->
+        <!-- ================================================================= -->
+        <section id="tab-audit" class="tab-view">
+            <div class="row">
+                <div class="col-lg-7">
+                    <div class="panel-card">
+                        <div class="panel-header">
+                            <div class="panel-title">
+                                <i class="fa-solid fa-clipboard-check"></i> Phase 3: Field Confirmation &amp; Audit
+                            </div>
+                        </div>
+                        <form id="form-delivery-audit">
+                            <div class="row g-3">
+                                <div class="col-md-12">
+                                    <label class="form-label">Select Dispatched / In-Transit Mission *</label>
+                                    <select class="form-control-custom" id="audit-mission-id" required>
+                                        <option value="">-- Choose Assigned Mission --</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Flight / Transit Duration (Minutes) *</label>
+                                    <input type="number" min="1" class="form-control-custom" id="audit-duration" value="65" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Drop-off Precision (Meters) *</label>
+                                    <input type="number" step="0.1" min="0" class="form-control-custom" id="audit-precision" value="3.5" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Field Officer Name *</label>
+                                    <input type="text" class="form-control-custom" id="audit-officer" value="Commander Rajesh Kumar, NDRF" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Actual Delivered Rations Count *</label>
+                                    <input type="number" min="0" class="form-control-custom" id="audit-rations" value="4800" required>
+                                </div>
+                                <div class="col-12">
+                                    <label class="form-label">Field Observations &amp; Notes</label>
+                                    <textarea class="form-control-custom" id="audit-notes" rows="2" placeholder="Payload received intact. Medical supplies verified."></textarea>
+                                </div>
+                                <div class="col-12">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="audit-verified" checked>
+                                        <label class="form-check-label text-secondary small" for="audit-verified">
+                                            Delivery physically verified and confirmed by on-ground field personnel
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-12 mt-3">
+                                    <button type="submit" class="btn-primary-custom">
+                                        <i class="fa-solid fa-stamp"></i> Record Field Confirmation
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <div class="col-lg-5">
+                    <div class="panel-card">
+                        <div class="panel-header">
+                            <div class="panel-title">
+                                <i class="fa-solid fa-calculator"></i> Relief Coverage Equation
+                            </div>
+                        </div>
+                        <p class="text-secondary small">
+                            <strong>Formula:</strong><br>
+                            <code>ReliefCoverageRatio = (DeliveredRations / TotalRequiredRations) * 100</code>
+                        </p>
+                        <p class="text-muted small">
+                            Submitting field confirmation completes the mission, marks the asset AVAILABLE, and updates zone-level relief coverage ratios.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Audited Confirmations Table -->
+            <div class="panel-card mt-3">
+                <div class="panel-header">
+                    <div class="panel-title">
+                        <i class="fa-solid fa-list"></i> Audited Field Confirmations
+                    </div>
+                </div>
+                <div class="table-responsive">
+                    <table class="table-custom">
+                        <thead>
+                            <tr>
+                                <th>Confirmation ID</th>
+                                <th>Mission Code</th>
+                                <th>Zone Code</th>
+                                <th>Duration (Min)</th>
+                                <th>Drop Precision (M)</th>
+                                <th>Delivered Rations</th>
+                                <th>Field Officer</th>
+                                <th>Verified</th>
+                                <th>Timestamp</th>
+                            </tr>
+                        </thead>
+                        <tbody id="confirmations-table-body">
+                            <tr><td colspan="9" class="text-center py-3 text-muted">Loading confirmations...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================================================================= -->
+        <!-- TAB 7: TRANSPORT FLEET -->
+        <!-- ================================================================= -->
+        <section id="tab-fleet" class="tab-view">
+            <div class="panel-card">
+                <div class="panel-header">
+                    <div class="panel-title">
+                        <i class="fa-solid fa-truck-plane"></i> Transport Fleet Assets Inventory
+                    </div>
+                </div>
+                <div class="table-responsive">
+                    <table class="table-custom">
+                        <thead>
+                            <tr>
+                                <th>Asset Code</th>
+                                <th>Name / Model</th>
+                                <th>Category</th>
+                                <th>Max Payload (KG)</th>
+                                <th>Max Range (KM)</th>
+                                <th>Weather Limit</th>
+                                <th>Current Location</th>
+                                <th>Status</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="fleet-table-body">
+                            <tr><td colspan="9" class="text-center py-3 text-muted">Loading fleet inventory...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================================================================= -->
+        <!-- TAB 8: REPORTS & ANALYTICS -->
+        <!-- ================================================================= -->
+        <section id="tab-reports" class="tab-view">
+            <div class="row g-3 mb-4">
+                <div class="col-md-4">
+                    <div class="panel-card text-center p-4">
+                        <i class="fa-solid fa-file-lines fa-2x text-cyan mb-3"></i>
+                        <h5>Emergency Flight Manifests</h5>
+                        <p class="text-muted small mb-3">Itemized dispatch manifests generated with Java NIO and BufferedWriter.</p>
+                        <a href="/api/reports/manifests" target="_blank" class="btn-primary-custom w-100 justify-content-center">
+                            <i class="fa-solid fa-download"></i> Download Manifests TXT
+                        </a>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="panel-card text-center p-4">
+                        <i class="fa-solid fa-parachute-box fa-2x text-green mb-3"></i>
+                        <h5>Supply Drop Logs</h5>
+                        <p class="text-muted small mb-3">Audited delivery logs with precision coordinates and field notes.</p>
+                        <a href="/api/reports/supply-drop-logs" target="_blank" class="btn-secondary-custom w-100 justify-content-center">
+                            <i class="fa-solid fa-download"></i> Download Drop Logs TXT
+                        </a>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="panel-card text-center p-4">
+                        <i class="fa-solid fa-chart-pie fa-2x text-amber mb-3"></i>
+                        <h5>Executive Dispatch Summary</h5>
+                        <p class="text-muted small mb-3">Comprehensive operational readiness report and relief coverage metrics.</p>
+                        <a href="/api/reports/summary" target="_blank" class="btn-primary-custom w-100 justify-content-center">
+                            <i class="fa-solid fa-download"></i> Download Summary TXT
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Multithreaded Dispatch Logs -->
+            <div class="panel-card">
+                <div class="panel-header">
+                    <div class="panel-title">
+                        <i class="fa-solid fa-terminal"></i> Multithreaded Dispatch Audit Logs
+                    </div>
+                </div>
+                <div class="table-responsive">
+                    <table class="table-custom">
+                        <thead>
+                            <tr>
+                                <th>Timestamp</th>
+                                <th>Thread Name</th>
+                                <th>Request ID</th>
+                                <th>Level</th>
+                                <th>Action</th>
+                                <th>Message</th>
+                            </tr>
+                        </thead>
+                        <tbody id="logs-table-body">
+                            <tr><td colspan="6" class="text-center py-3 text-muted">Loading audit logs...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================================================================= -->
+        <!-- TAB 9: SYSTEM SETTINGS -->
+        <!-- ================================================================= -->
+        <section id="tab-settings" class="tab-view">
+            <div class="row">
+                <div class="col-lg-6">
+                    <div class="panel-card">
+                        <div class="panel-header">
+                            <div class="panel-title">
+                                <i class="fa-solid fa-sliders"></i> Algorithmic Urgency Weights
+                            </div>
+                        </div>
+                        <p class="text-secondary small">
+                            These weights govern the DDUS dispatch priority engine:
+                        </p>
+                        <div class="mb-3">
+                            <label class="form-label">Urgency Weight (Wu): 35.0%</label>
+                            <input type="range" class="form-range" min="10" max="60" value="35" disabled>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Population Weight (Wp): 35.0%</label>
+                            <input type="range" class="form-range" min="10" max="60" value="35" disabled>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Terrain Inverse Risk Weight (Wt): 30.0%</label>
+                            <input type="range" class="form-range" min="10" max="60" value="30" disabled>
+                        </div>
+                        <div class="alert alert-info small">
+                            Configured via <code>application.properties</code> and environment variables <code>DDUS_WEIGHT_URGENCY</code>, <code>DDUS_WEIGHT_POPULATION</code>, <code>DDUS_WEIGHT_TERRAIN</code>.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-6">
+                    <div class="panel-card">
+                        <div class="panel-header">
+                            <div class="panel-title">
+                                <i class="fa-solid fa-cloud"></i> Oracle Cloud Infrastructure (OCI) Architecture
+                            </div>
+                        </div>
+                        <ul class="text-secondary small">
+                            <li class="mb-2"><strong>OCI VM 1 (App Server):</strong> Ubuntu Server LTS, Java 21 JDK, Spring Boot, Port 8080.</li>
+                            <li class="mb-2"><strong>OCI VM 2 (DB Server):</strong> Ubuntu Server LTS, MySQL 8, Private Subnet, Port 3306.</li>
+                            <li class="mb-2"><strong>Network:</strong> Dual-subnet VCN, private database routing, restricted security lists.</li>
+                            <li class="mb-2"><strong>Local Windows 11:</strong> Fully runnable on PowerShell with Maven Wrapper &amp; MySQL 8.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Application Script -->
+    <script src="/js/app.js"></script>
+</body>
+</html>
+
