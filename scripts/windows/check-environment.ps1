@@ -1,4 +1,4 @@
-# ==============================================================================
+﻿# ==============================================================================
 # DISASTER RELIEF SUPPLY & EMERGENCY MEDICAL LOGISTICS DISPATCH SYSTEM (DREMLDS)
 # Windows 11 Environment & Dependency Verification Script
 # ==============================================================================
@@ -6,6 +6,22 @@
 Write-Host "======================================================================" -ForegroundColor Cyan
 Write-Host " DREMLDS — Windows 11 Environment Diagnostics" -ForegroundColor Cyan
 Write-Host "======================================================================" -ForegroundColor Cyan
+
+# Load .env file if present
+$envPath = Join-Path $PSScriptRoot "..\..\.env"
+if (Test-Path $envPath) {
+    Get-Content $envPath | ForEach-Object {
+        $line = $_.Trim()
+        if ($line -and -not $line.StartsWith("#") -and $line.Contains("=")) {
+            $parts = $line.Split("=", 2)
+            $varName = $parts[0].Trim()
+            $varVal = $parts[1].Trim()
+            if (-not [string]::IsNullOrEmpty($varName) -and -not (Test-Path "env:$varName")) {
+                [Environment]::SetEnvironmentVariable($varName, $varVal, "Process")
+            }
+        }
+    }
+}
 
 $allPass = $true
 
