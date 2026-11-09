@@ -54,19 +54,19 @@ if (Test-Path $mvnwPath) {
     $allPass = $false
 }
 
-# 3. Check MySQL / MariaDB Server (Port 3306)
-Write-Host "`n[3/5] Checking Database Port (3306)..." -NoNewline
+# 3. Check MySQL / MariaDB Server
 $dbHost = if ($env:DB_HOST) { $env:DB_HOST } else { "localhost" }
-$dbPort = if ($env:DB_PORT) { [int]$env:DB_PORT } else { 3306 }
+$dbPort = if ($env:DB_PORT) { [int]$env:DB_PORT } else { 3307 }
+Write-Host "`n[3/5] Checking Database Port ($dbPort)..." -NoNewline
 
 try {
     $tcp = Test-NetConnection -ComputerName $dbHost -Port $dbPort -WarningAction SilentlyContinue
     if ($tcp.TcpTestSucceeded) {
         Write-Host " [ONLINE]" -ForegroundColor Green
-        Write-Host "   Successfully reached database at $dbHost:$dbPort" -ForegroundColor Gray
+        Write-Host "   Successfully reached database at ${dbHost}:${dbPort}" -ForegroundColor Gray
     } else {
         Write-Host " [OFFLINE / UNREACHABLE]" -ForegroundColor Yellow
-        Write-Host "   MySQL is not listening on $dbHost:$dbPort." -ForegroundColor Gray
+        Write-Host "   MySQL is not listening on ${dbHost}:${dbPort}." -ForegroundColor Gray
         Write-Host "   (Note: Application and tests will automatically run with embedded in-memory database)" -ForegroundColor Gray
     }
 } catch {
@@ -76,10 +76,10 @@ try {
 # 4. Check Environment Variables
 Write-Host "`n[4/5] Checking Application Environment Variables..." -NoNewline
 Write-Host " [OK]" -ForegroundColor Green
-Write-Host "   DB_HOST = $(if ($env:DB_HOST) { $env:DB_HOST } else { 'localhost (default)' })" -ForegroundColor Gray
-Write-Host "   DB_PORT = $(if ($env:DB_PORT) { $env:DB_PORT } else { '3306 (default)' })" -ForegroundColor Gray
-Write-Host "   DB_NAME = $(if ($env:DB_NAME) { $env:DB_NAME } else { 'disaster_relief_db (default)' })" -ForegroundColor Gray
-Write-Host "   DB_USER = $(if ($env:DB_USER) { $env:DB_USER } else { 'relief_app / root (default)' })" -ForegroundColor Gray
+Write-Host "   DB_HOST = $(if ($env:DB_HOST) { $env:DB_HOST } else { 'localhost' })" -ForegroundColor Gray
+Write-Host "   DB_PORT = $(if ($env:DB_PORT) { $env:DB_PORT } else { '3307' })" -ForegroundColor Gray
+Write-Host "   DB_NAME = $(if ($env:DB_NAME) { $env:DB_NAME } else { 'disaster_relief_db' })" -ForegroundColor Gray
+Write-Host "   DB_USER = $(if ($env:DB_USER) { $env:DB_USER } else { 'host' })" -ForegroundColor Gray
 
 # 5. Check Git
 Write-Host "`n[5/5] Checking Git for Windows..." -NoNewline

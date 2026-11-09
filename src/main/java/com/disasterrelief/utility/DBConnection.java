@@ -41,9 +41,9 @@ public class DBConnection {
 
     private static HikariDataSource initializeDataSource() {
         String host = getEnvOrDefault("DB_HOST", "localhost");
-        String port = getEnvOrDefault("DB_PORT", "3306");
+        String port = getEnvOrDefault("DB_PORT", "3307");
         String dbName = getEnvOrDefault("DB_NAME", "disaster_relief_db");
-        String user = getEnvOrDefault("DB_USER", "root");
+        String user = getEnvOrDefault("DB_USER", "host");
         String password = getEnvOrDefault("DB_PASSWORD", "1234");
 
         String jdbcUrl = String.format(

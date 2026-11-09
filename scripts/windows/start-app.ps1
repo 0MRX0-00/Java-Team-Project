@@ -11,6 +11,22 @@ param(
 $projectRoot = (Resolve-Path (Join-Path $PSScriptRoot "..\..")).Path
 Set-Location $projectRoot
 
+# Load .env configuration if present
+$envFile = Join-Path $projectRoot ".env"
+if (Test-Path $envFile) {
+    Get-Content $envFile | ForEach-Object {
+        $line = $_.Trim()
+        if ($line -and -not $line.StartsWith("#") -and $line.Contains("=")) {
+            $parts = $line.Split("=", 2)
+            $varName = $parts[0].Trim()
+            $varVal = $parts[1].Trim()
+            if (-not [string]::IsNullOrEmpty($varName) -and -not (Test-Path "env:$varName")) {
+                [Environment]::SetEnvironmentVariable($varName, $varVal, "Process")
+            }
+        }
+    }
+}
+
 Write-Host "======================================================================" -ForegroundColor Cyan
 Write-Host " Starting DREMLDS Application on Windows 11" -ForegroundColor Cyan
 Write-Host "======================================================================" -ForegroundColor Cyan
