@@ -98,5 +98,16 @@ class RestApiIntegrationTest {
                 .andExpect(content().contentTypeCompatibleWith(MediaType.TEXT_PLAIN))
                 .andExpect(content().string(containsString("OFFICIAL EMERGENCY FLIGHT & DISPATCH MANIFEST REPORT")));
     }
+
+    @Test
+    @DisplayName("GET /api/health returns UP and database status for two-device verification")
+    void testGetHealthCheck() throws Exception {
+        mockMvc.perform(get("/api/health"))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.status", is("UP")))
+                .andExpect(jsonPath("$.databaseStatus", is("CONNECTED")))
+                .andExpect(jsonPath("$.role", containsString("Device 2")));
+    }
 }
 

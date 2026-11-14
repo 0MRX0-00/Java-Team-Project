@@ -18,6 +18,7 @@ import java.net.UnknownHostException;
 public class MainApp {
 
     private static final Logger logger = LoggerFactory.getLogger(MainApp.class);
+    public static final long START_TIME = System.currentTimeMillis();
 
     public static void main(String[] args) {
         SpringApplication app = new SpringApplication(MainApp.class);

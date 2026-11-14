@@ -97,5 +97,6 @@ if ($allPass) {
 } else {
     Write-Host " Some required components were missing. Please review warnings above." -ForegroundColor Yellow
 }
-Write-Host "======================================================================`n" -ForegroundColor Cyan
+Write-Host "======================================================================" -ForegroundColor Cyan
+Write-Host ""
 

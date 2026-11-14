@@ -4,7 +4,15 @@
 [![Java](https://img.shields.io/badge/Java-JDK%2017%20%7C%2021-orange.svg)]()
 [![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.2.5-brightgreen.svg)]()
 [![OS](https://img.shields.io/badge/OS-Windows%2011%20%7C%20Ubuntu%20LTS-blue.svg)]()
-[![Cloud](https://img.shields.io/badge/Cloud-Oracle%20Cloud%20(OCI)-red.svg)]()
+[![Architecture](https://img.shields.io/badge/Architecture-Two--Device%20LAN%20Client--Server-success.svg)]()
+
+> [!IMPORTANT]
+> ### 🌐 TWO-DEVICE PHYSICAL CLIENT–SERVER ARCHITECTURE (LOCAL WI-FI / LAN)
+> For running this application across **two separate physical laptops** (Laptop 1 = Frontend UI, Laptop 2 = Spring Boot Backend & MySQL Database) connected over the same local Wi-Fi or mobile hotspot with **zero cloud dependencies and 100% offline capability**, navigate to:
+> - **[Java-Two-Device-Project Directory](file:///g:/Java%20Team%20Project/Java-Two-Device-Project/README.md)**
+> - **[Device 1 (Frontend Laptop Instructions)](file:///g:/Java%20Team%20Project/Java-Two-Device-Project/Device-1-Frontend/README.md)**
+> - **[Device 2 (Backend Laptop Instructions)](file:///g:/Java%20Team%20Project/Java-Two-Device-Project/Device-2-Backend/README.md)**
+> - **[Complete Architecture & Presentation Documentation](file:///g:/Java%20Team%20Project/Java-Two-Device-Project/Documentation/ARCHITECTURE.md)**
 
 ---
 

@@ -1,0 +1,28 @@
+========================================================================================
+  DISASTER RELIEF SUPPLY & EMERGENCY MEDICAL LOGISTICS DISPATCH SYSTEM (DREMLDS)        
+  OFFICIAL EMERGENCY FLIGHT & DISPATCH MANIFEST REPORT                                  
+  Generated At: 2026-11-14 10:35:57
+========================================================================================
+
++----------------+---------------+------------+--------------------------+-----------------+--------+----------------+
+| MISSION ID     | ZONE CODE     | EVENT      | TRANSPORT MODE           | PRIORITY        | DDUS   | STATUS         |
++----------------+---------------+------------+--------------------------+-----------------+--------+----------------+
+| MSN-2026-E85819 | ZONE-TN-1001  | ACTIVE     | ALL_TERRAIN_RESCUE_TRUCK | PRIORITY_CHARLIE | 71.4   | DISPATCHED     |
+| MSN-2026-605803 | ZONE-TN-1001  | ACTIVE     | UNASSIGNED               | PRIORITY_CHARLIE | 71.4   | PENDING        |
+| MSN-2026-ECD9AE | ZONE-TN-1004  | ACTIVE     | UNASSIGNED               | PRIORITY_CHARLIE | 62.9   | PENDING        |
+| MSN-2026-303201 | ZONE-TN-1003  | ACTIVE     | UNASSIGNED               | PRIORITY_BRAVO  | 80.7   | ABORTED        |
+| MSN-2026-A96777 | ZONE-TN-1003  | ACTIVE     | UNASSIGNED               | PRIORITY_BRAVO  | 80.7   | ABORTED        |
+| MSN-2026-0EBFBC | ZONE-KL-2001  | ACTIVE     | UNASSIGNED               | MISSION_ABORTED | 41.0   | ABORTED        |
+| MSN-2026-3ACBD5 | ZONE-TN-1004  | ACTIVE     | HEAVY_CARGO_HELICOPTER   | PRIORITY_CHARLIE | 62.9   | DISPATCHED     |
+| MSN-2026-4EF392 | ZONE-TN-1003  | ACTIVE     | ALL_TERRAIN_RESCUE_TRUCK | PRIORITY_BRAVO  | 80.7   | DISPATCHED     |
+| MSN-2026-1034EB | ZONE-TN-1002  | ACTIVE     | UNASSIGNED               | MISSION_ABORTED | 47.4   | ABORTED        |
+| MSN-2026-BBD82E | ZONE-KL-2001  | ACTIVE     | UNASSIGNED               | MISSION_ABORTED | 41.0   | ABORTED        |
+| MSN-2026-2D6592 | ZONE-TN-1001  | ACTIVE     | HEAVY_CARGO_HELICOPTER   | PRIORITY_CHARLIE | 71.4   | DISPATCHED     |
+| MSN-2026-0005  | ZONE-KA-3001  | ACTIVE     | UNASSIGNED               | MISSION_ABORTED | 48.6   | ABORTED        |
+| MSN-2026-0004  | ZONE-TN-1002  | ACTIVE     | HEAVY_CARGO_HELICOPTER   | PRIORITY_BRAVO  | 77.5   | FLIGHT_GROUNDED |
+| MSN-2026-0003  | ZONE-KL-2001  | ACTIVE     | EMERGENCY_MEDICAL_DRONE  | PRIORITY_ALPHA  | 93.8   | COMPLETED      |
+| MSN-2026-0002  | ZONE-TN-1001  | ACTIVE     | ALL_TERRAIN_RESCUE_TRUCK | PRIORITY_BRAVO  | 86.4   | IN_TRANSIT     |
+| MSN-2026-0001  | ZONE-TN-1003  | ACTIVE     | HEAVY_CARGO_HELICOPTER   | PRIORITY_ALPHA  | 95.2   | COMPLETED      |
++----------------+---------------+------------+--------------------------+-----------------+--------+----------------+
+
+Total Manifested Missions: 16

@@ -1,0 +1,8 @@
+zone_code,zone_name,event_type,affected_population,medical_urgency_score,terrain_risk,road_accessibility,weather_severity_index,flight_distance_km
+ZONE-TN-1006,Tirunelveli River Valley,FLOOD,34000,8.7,65.0,35.0,4.5,380.0
+ZONE-TN-1007,Kanyakumari Coastal Bluff,CYCLONE,29000,9.1,55.0,40.0,6.2,460.0
+ZONE-TN-1008,Salem Foothill Sector,QUAKE,16000,7.9,72.0,50.0,3.8,240.0
+ZONE-KL-2002,Idukki High Ranges,LANDSLIDE,12500,9.4,94.0,8.0,5.2,130.0
+ZONE-AP-4001,Nellore Coastal Marshlands,FLOOD,41000,8.3,48.0,60.0,4.0,165.0
+ZONE-KA-3002,Shimoga Forest Fringe,FLOOD,8500,6.5,50.0,55.0,3.5,310.0
+
