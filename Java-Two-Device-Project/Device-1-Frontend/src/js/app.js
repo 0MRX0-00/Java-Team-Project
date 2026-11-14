@@ -8,18 +8,14 @@
  */
 
 // Helper to resolve backend base URL
-function apiUrl(path) {
-    if (typeof window.apiUrl === 'function') {
-        return window.apiUrl(path);
-    }
-    return path;
+function apiUrl(endpoint) {
+    const base = (typeof window.getApiBaseUrl === 'function') ? window.getApiBaseUrl() : 'http://localhost:8080';
+    const cleanEndpoint = endpoint.startsWith('/') ? endpoint : '/' + endpoint;
+    return `${base}${cleanEndpoint}`;
 }
 
-// Robust fetch helper with timeout
-async function apiFetch(endpoint, options = {}, timeoutMs = 4000) {
-    if (typeof window.apiFetch === 'function') {
-        return window.apiFetch(endpoint, options, timeoutMs);
-    }
+// Robust fetch helper with timeout (zero-recursion)
+async function apiFetch(endpoint, options = {}, timeoutMs = 5000) {
     const url = apiUrl(endpoint);
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), timeoutMs);

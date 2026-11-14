@@ -34,24 +34,6 @@
         return `${base}${cleanEndpoint}`;
     };
 
-    // Robust fetch wrapper with timeout
-    window.apiFetch = async function (endpoint, options = {}, timeoutMs = 4000) {
-        const url = window.apiUrl(endpoint);
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
-        try {
-            const res = await fetch(url, {
-                ...options,
-                signal: controller.signal
-            });
-            clearTimeout(timeoutId);
-            return res;
-        } catch (err) {
-            clearTimeout(timeoutId);
-            throw err;
-        }
-    };
-
     // Update the stored Backend URL
     window.setApiBaseUrl = function (newUrl) {
         if (!newUrl) return;
