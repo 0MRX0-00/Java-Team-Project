@@ -20,7 +20,7 @@
 
 window.APP_CONFIG = {
     // Current Device 2 IPv4 address on your shared Wi-Fi
-    API_BASE_URL: "http://10.47.118.217:8080",
+    API_BASE_URL: "http://10.1.32.17:8080",
 
     // Background health check polling interval in milliseconds
     HEALTH_POLL_INTERVAL_MS: 8000,
