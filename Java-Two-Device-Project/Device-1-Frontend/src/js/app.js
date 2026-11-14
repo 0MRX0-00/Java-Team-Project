@@ -1026,6 +1026,17 @@ window.dispatchSpecificZone = async function (zoneId) {
     }
 };
 
+function calculateZoneDdus(z) {
+    const wu = 35.0, wp = 35.0, wt = 30.0;
+    const urgency = parseFloat(z.medicalUrgencyScore) || 5.0;
+    const pop = parseInt(z.affectedPopulation) || 10000;
+    const risk = parseFloat(z.terrainRisk) || 50.0;
+    const urgencyPart = (urgency / 10.0) * wu;
+    const popPart = Math.min(1.0, pop / 50000.0) * wp;
+    const riskPart = ((100.0 - risk) / 100.0) * wt;
+    return urgencyPart + popPart + riskPart;
+}
+
 function populateZoneDropdowns(zones) {
     const cargoSelect = document.getElementById('cargo-zone-id');
     const dispatchSelect = document.getElementById('dispatch-select-zone');
@@ -1037,13 +1048,43 @@ function populateZoneDropdowns(zones) {
         return;
     }
 
-    const options = zones.map(z => `<option value="${z.id}">${z.zoneCode} - ${z.zoneName} (${z.eventType})</option>`).join('');
+    // Sort zones so highest DDUS (dispatchable) appear first
+    const sortedZones = [...zones].sort((a, b) => calculateZoneDdus(b) - calculateZoneDdus(a));
+
+    const options = sortedZones.map(z => {
+        const ddus = calculateZoneDdus(z);
+        let badge = '';
+        let tag = '';
+        if (ddus >= 90.0) {
+            badge = '🟢 [DDUS ' + ddus.toFixed(1) + ' | ALPHA]';
+            tag = ' — Ready for Immediate Dispatch';
+        } else if (ddus >= 75.0) {
+            badge = '🟢 [DDUS ' + ddus.toFixed(1) + ' | BRAVO]';
+            tag = ' — Dispatches Heavy Chinook Heli';
+        } else if (ddus >= 60.0) {
+            badge = '🟡 [DDUS ' + ddus.toFixed(1) + ' | CHARLIE]';
+            tag = ' — Dispatches Tactical Truck';
+        } else {
+            badge = '⚪ [DDUS ' + ddus.toFixed(1) + ' | LOW URGENCY]';
+            tag = ' — Tests Abort Threshold (< 60)';
+        }
+        return `<option value="${z.id}">${badge} ${z.zoneCode} - ${z.zoneName} (${z.eventType})${tag}</option>`;
+    }).join('');
 
     if (cargoSelect) {
         cargoSelect.innerHTML = '<option value="">-- Choose Disaster Zone --</option>' + options;
+        if (!cargoSelect.value && sortedZones.length > 0) {
+            const firstDispatchable = sortedZones.find(z => calculateZoneDdus(z) >= 60.0) || sortedZones[0];
+            cargoSelect.value = firstDispatchable.id;
+        }
     }
     if (dispatchSelect) {
         dispatchSelect.innerHTML = '<option value="">-- Choose Disaster Zone --</option>' + options;
+        // Auto-select first dispatchable zone (e.g., ZONE-TN-1003) so 1-click execution succeeds
+        if (sortedZones.length > 0) {
+            const firstDispatchable = sortedZones.find(z => calculateZoneDdus(z) >= 60.0) || sortedZones[0];
+            dispatchSelect.value = firstDispatchable.id;
+        }
     }
 }
 
@@ -1233,23 +1274,38 @@ function populateAuditMissionDropdown(missions) {
         return;
     }
 
+    // Sort by id descending so newest missions appear first
+    const sorted = [...missions].sort((a, b) => (b.id || 0) - (a.id || 0));
+
     // Filter missions that can be audited (DISPATCHED, IN_TRANSIT, or COMPLETED)
-    const auditable = missions.filter(m => m.status === 'DISPATCHED' || m.status === 'IN_TRANSIT' || m.status === 'COMPLETED');
-    const listToUse = auditable.length > 0 ? auditable : missions;
+    const auditable = sorted.filter(m => m.status === 'DISPATCHED' || m.status === 'IN_TRANSIT' || m.status === 'COMPLETED');
+    const listToUse = auditable.length > 0 ? auditable : sorted;
 
     select.innerHTML = '<option value="">-- Choose Assigned Mission --</option>' +
-        listToUse.map(m => `<option value="${m.id}" data-zone="${m.zoneCode || m.disasterZoneId}" data-duration="${m.estimatedDurationMin || 60}">
-            ${m.missionCode} - Zone: ${m.zoneCode || m.disasterZoneId} [${m.status}]
-        </option>`).join('');
+        listToUse.map(m => {
+            const statusIcon = m.status === 'DISPATCHED' ? '🚀' : (m.status === 'IN_TRANSIT' ? '✈️' : (m.status === 'COMPLETED' ? '✅' : '⚪'));
+            return `<option value="${m.id}" data-zone="${m.zoneCode || m.disasterZoneId}" data-duration="${m.estimatedDurationMin || 60}">
+                ${statusIcon} [${m.status}] ${m.missionCode} - Zone: ${m.zoneCode || m.disasterZoneId}
+            </option>`;
+        }).join('');
 
-    select.addEventListener('change', () => {
-        const selected = select.options[select.selectedIndex];
-        if (selected && selected.value) {
-            const dur = selected.getAttribute('data-duration');
-            const durInput = document.getElementById('audit-duration');
-            if (durInput && dur) durInput.value = dur;
-        }
-    });
+    // Auto-select latest DISPATCHED or IN_TRANSIT mission
+    const firstActive = listToUse.find(m => m.status === 'DISPATCHED' || m.status === 'IN_TRANSIT') || listToUse[0];
+    if (firstActive && !select.value) {
+        select.value = firstActive.id;
+    }
+
+    if (!select.dataset.listenerAttached) {
+        select.dataset.listenerAttached = 'true';
+        select.addEventListener('change', () => {
+            const selected = select.options[select.selectedIndex];
+            if (selected && selected.value) {
+                const dur = selected.getAttribute('data-duration');
+                const durInput = document.getElementById('audit-duration');
+                if (durInput && dur) durInput.value = dur;
+            }
+        });
+    }
 }
 
 window.autoFillAuditPerfect = function () {
@@ -1624,14 +1680,127 @@ function displayDispatchOutcome(r) {
     if (!card) return;
 
     card.style.display = 'block';
+    const titleEl = document.getElementById('eval-title');
+    const msgEl = document.getElementById('eval-msg');
+
     document.getElementById('eval-code').textContent = r.missionCode || '--';
     document.getElementById('eval-ddus').textContent = r.ddusScore ? r.ddusScore.toFixed(1) : '--';
     document.getElementById('eval-priority').innerHTML = renderPriorityBadge(r.priorityLevel);
-    document.getElementById('eval-transport').textContent = r.assignedTransportAssetCode ? `${r.assignedTransportAssetCode} (${formatCategory(r.assignedTransportCategory)})` : 'None Allocated';
+
+    // Asset code & name
+    const assetStr = (r.assignedAssetName || r.assignedAssetCode)
+        ? `${r.assignedAssetName || r.assignedAssetCode} (${formatCategory(r.transportCategory || '')})`
+        : (r.assignedTransportAssetCode ? `${r.assignedTransportAssetCode}` : 'None Allocated');
+    document.getElementById('eval-transport').textContent = assetStr;
+
     document.getElementById('eval-suitability').textContent = r.transportSuitabilityScore ? `${r.transportSuitabilityScore.toFixed(1)} / 100` : '--';
     document.getElementById('eval-status').innerHTML = renderStatusBadge(r.status);
-    document.getElementById('eval-msg').textContent = r.rejectionReason || 'Mission cleared and queued for deployment.';
+
+    const message = r.executionMessage || r.rejectionReason || 'Mission cleared and queued for deployment.';
+    msgEl.textContent = message;
+
+    // Action button container inside outcome card
+    let actionBar = document.getElementById('eval-action-bar');
+    if (!actionBar) {
+        actionBar = document.createElement('div');
+        actionBar.id = 'eval-action-bar';
+        card.appendChild(actionBar);
+    }
+    actionBar.className = 'mt-3 pt-2 border-top border-secondary d-flex flex-wrap gap-2 align-items-center';
+
+    if (r.status === 'DISPATCHED') {
+        card.className = 'p-3 rounded bg-dark border border-success mb-3 shadow-lg';
+        if (titleEl) {
+            titleEl.className = 'text-success mb-2 fw-bold';
+            titleEl.innerHTML = '<i class="fa-solid fa-circle-check"></i> Mission Successfully Scheduled &amp; Transport Allocated';
+        }
+        msgEl.className = 'text-success fw-bold';
+        actionBar.innerHTML = `
+            <button class="btn btn-sm btn-outline-info" onclick="window.jumpToTracking('${r.missionCode}')">
+                <i class="fa-solid fa-location-crosshairs"></i> Track Mission Live
+            </button>
+            <button class="btn btn-sm btn-outline-success" onclick="window.jumpToAudit(${r.missionId})">
+                <i class="fa-solid fa-stamp"></i> Proceed to Phase 3 Field Audit
+            </button>
+        `;
+    } else if (r.status === 'ABORTED') {
+        card.className = 'p-3 rounded bg-dark border border-warning mb-3';
+        if (titleEl) {
+            titleEl.className = 'text-warning mb-2 fw-bold';
+            titleEl.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> Mission Filtered: Urgency Threshold Not Met (< 60.0)';
+        }
+        msgEl.className = 'text-warning';
+        actionBar.innerHTML = `
+            <div class="w-100 alert alert-warning py-2 px-3 mb-2 small text-light" style="background: rgba(245, 158, 11, 0.15); border: 1px solid rgba(245, 158, 11, 0.3);">
+                <strong>Academic Algorithm Rule:</strong> This zone has DDUS = <strong>${r.ddusScore ? r.ddusScore.toFixed(1) : '--'}</strong>, which is below the mandatory operational threshold of <strong>60.0</strong>. The system intentionally aborts low-urgency dispatches to protect fleet aircraft from premature wear and reserve them for life-threatening crises.
+            </div>
+            <button class="btn btn-sm btn-primary-custom" onclick="window.dispatchRecommendedZone()">
+                <i class="fa-solid fa-bolt"></i> Dispatch High-Priority Zone (ZONE-TN-1003 | Chinook Heli)
+            </button>
+            <button class="btn btn-sm btn-secondary-custom" onclick="window.resetAllFleetAssets()">
+                <i class="fa-solid fa-rotate"></i> Reset Fleet to Available
+            </button>
+        `;
+    } else if (r.status === 'FLIGHT_GROUNDED') {
+        card.className = 'p-3 rounded bg-dark border border-danger mb-3';
+        if (titleEl) {
+            titleEl.className = 'text-danger mb-2 fw-bold';
+            titleEl.innerHTML = '<i class="fa-solid fa-cloud-bolt"></i> Aircraft Grounded by Weather Safety Filter';
+        }
+        msgEl.className = 'text-danger';
+        actionBar.innerHTML = `
+            <div class="w-100 small text-muted mb-1">Severe weather conditions exceed aircraft safety ceiling. A tactical ground transport truck was either deployed or required.</div>
+            <button class="btn btn-sm btn-secondary-custom" onclick="window.resetAllFleetAssets()">
+                <i class="fa-solid fa-rotate"></i> Reset Fleet to Available
+            </button>
+        `;
+    }
 }
+
+window.dispatchRecommendedZone = function () {
+    const select = document.getElementById('dispatch-select-zone');
+    if (!select) return;
+    let targetOption = null;
+    for (const opt of select.options) {
+        if (opt.text.includes('ZONE-TN-1003') || opt.text.includes('BRAVO') || opt.text.includes('ALPHA')) {
+            targetOption = opt;
+            break;
+        }
+    }
+    if (!targetOption && select.options.length > 1) {
+        targetOption = select.options[1];
+    }
+    if (targetOption) {
+        select.value = targetOption.value;
+        const btn = document.getElementById('btn-trigger-dispatch');
+        if (btn) btn.click();
+    }
+};
+
+window.resetAllFleetAssets = async function () {
+    try {
+        const res = await apiFetch('/api/assets');
+        if (res.ok) {
+            const assets = await res.json();
+            await Promise.all(assets.map(a => apiFetch(`/api/assets/${a.id}?status=AVAILABLE`, { method: 'PUT' })));
+            showToast('Fleet Reset', 'All 6 fleet assets reset to AVAILABLE status!', 'success');
+            loadFleetAssets();
+            loadDashboardData(true);
+        }
+    } catch (err) {
+        showToast('Error', err.message, 'danger');
+    }
+};
+
+window.jumpToTracking = function (missionCode) {
+    const tabLink = document.querySelector('a[data-tab="tab-missions"]');
+    if (tabLink) tabLink.click();
+    const search = document.getElementById('missions-search-input');
+    if (search && missionCode) {
+        search.value = missionCode;
+        search.dispatchEvent(new Event('input'));
+    }
+};
 
 // =============================================================================
 // FORMATTING HELPERS

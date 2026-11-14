@@ -645,13 +645,24 @@
                         </div>
 
                         <div class="mb-4">
-                            <label class="form-label">Select Active Disaster Zone for Immediate Single Dispatch</label>
+                            <div class="d-flex justify-content-between align-items-center mb-1 flex-wrap gap-2">
+                                <label class="form-label mb-0">Select Active Disaster Zone for Immediate Single Dispatch</label>
+                                <span class="small text-muted">🟢 Green = Dispatchable (DDUS &ge; 60.0) | ⚪ Gray = Abort Filter (&lt; 60.0)</span>
+                            </div>
                             <div class="input-group">
                                 <select class="form-control-custom" id="dispatch-select-zone">
                                     <option value="">-- Choose Zone --</option>
                                 </select>
                                 <button class="btn-secondary-custom" id="btn-trigger-dispatch">
                                     <i class="fa-solid fa-paper-plane"></i> Execute Single Dispatch
+                                </button>
+                            </div>
+                            <div class="d-flex flex-wrap gap-2 mt-2">
+                                <button type="button" class="btn btn-sm btn-outline-info" onclick="window.dispatchRecommendedZone()">
+                                    <i class="fa-solid fa-bolt text-warning"></i> 1-Click Priority Bravo Dispatch (ZONE-TN-1003 &rarr; Chinook Heli)
+                                </button>
+                                <button type="button" class="btn btn-sm btn-outline-success" onclick="window.resetAllFleetAssets()">
+                                    <i class="fa-solid fa-rotate text-success"></i> Reset Fleet to AVAILABLE (All 6 Assets)
                                 </button>
                             </div>
                         </div>
@@ -899,6 +910,9 @@
                     <div class="panel-title">
                         <i class="fa-solid fa-truck-plane"></i> Transport Fleet Assets Inventory
                     </div>
+                    <button class="btn btn-sm btn-outline-success" onclick="window.resetAllFleetAssets()">
+                        <i class="fa-solid fa-rotate"></i> Reset All to AVAILABLE
+                    </button>
                 </div>
                 <div class="table-responsive">
                     <table class="table-custom">
