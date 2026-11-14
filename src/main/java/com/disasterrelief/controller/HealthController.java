@@ -71,3 +71,4 @@ public class HealthController {
         return ResponseEntity.status(dbOk ? HttpStatus.OK : HttpStatus.SERVICE_UNAVAILABLE).body(response);
     }
 }
+

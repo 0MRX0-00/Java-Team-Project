@@ -32,3 +32,4 @@ window.APP_CONFIG = {
     ROLE: "Device 1 - Frontend Presentation Layer",
     VERSION: "1.0.0"
 };
+

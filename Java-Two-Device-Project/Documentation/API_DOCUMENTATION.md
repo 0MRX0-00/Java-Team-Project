@@ -193,3 +193,4 @@
 | `/api/reports/summary` | `GET` | `text/plain` | Executive disaster operations summary and coverage ratio. |
 | `/api/reports/dispatch-logs` | `GET` | `application/json` | Real-time thread pool execution logs (`DispatchWorker-X`). |
 | `/api/import/csv` | `POST` | `application/json` | Ingests `data/relief_requests.csv` with regex validation. |
+

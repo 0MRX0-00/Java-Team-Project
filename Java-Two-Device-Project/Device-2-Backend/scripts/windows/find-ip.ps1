@@ -1,4 +1,4 @@
-﻿# ==============================================================================
+# ==============================================================================
 # DREMLDS — DEVICE 2 IP ADDRESS DETECTOR (WINDOWS 11)
 # Detects local IPv4 addresses and displays the exact URL to enter on Device 1
 # ==============================================================================
@@ -29,3 +29,4 @@ if ($adapters) {
     Write-Host "`n[WARNING] No active IPv4 network adapter found." -ForegroundColor Red
     Write-Host "Ensure Device 2 is connected to Wi-Fi or a Mobile Hotspot.`n" -ForegroundColor Yellow
 }
+

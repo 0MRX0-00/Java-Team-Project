@@ -4,3 +4,4 @@ sudo ufw allow 8080/tcp
 sudo ufw reload
 sudo ufw status | grep 8080
 echo "Done."
+

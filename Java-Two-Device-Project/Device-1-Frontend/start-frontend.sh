@@ -32,3 +32,4 @@ else
     echo "Error: Neither python3 nor node found. Please install Python or Node to serve files."
     exit 1
 fi
+

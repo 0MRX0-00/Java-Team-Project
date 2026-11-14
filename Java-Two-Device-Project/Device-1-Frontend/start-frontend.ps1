@@ -1,4 +1,4 @@
-﻿# ==============================================================================
+# ==============================================================================
 # DREMLDS — DEVICE 1 (FRONTEND) STARTUP SCRIPT (WINDOWS 11)
 # Starts a lightweight zero-dependency local web server on port 3000
 # using Windows native .NET HttpListener and launches the browser.
@@ -96,3 +96,4 @@ try {
     $listener.Close()
     Write-Host "`nFrontend server stopped." -ForegroundColor Yellow
 }
+

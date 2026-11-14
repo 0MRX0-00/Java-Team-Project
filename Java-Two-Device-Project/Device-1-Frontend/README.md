@@ -132,3 +132,4 @@ Once both devices are running on the same network:
 | **CORS Policy Error** | Cross-Origin blocked | Device 2's Spring Boot backend is already configured with `CorsConfig.java` to allow all LAN origins. Verify backend is running the latest build. |
 | **HTTP 404 on API calls** | Wrong port or path | Ensure URL format is `http://<IP>:8080` (without trailing `/api`). The app appends `/api/...` automatically. |
 | **No Internet Warning** | Isolated LAN / Hotspot | Normal! DREMLDS works 100% offline using the bundled offline assets in `assets/`. |
+

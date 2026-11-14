@@ -69,3 +69,4 @@ VALUES
 (2, 'DispatchWorker-2', 'REQ-TN-1001-01', 'INFO', 'ALLOCATE_ASSET', 'Assigned TRUCK-TATRA-01 (All-Terrain Truck). Suitability score: 84.0'),
 (4, 'DispatchWorker-3', 'REQ-TN-1002-01', 'WARN', 'WEATHER_HAZARD', 'Helicopter flight rejected: weather index 7.8 exceeds limit 7.0. Mission marked FLIGHT_GROUNDED'),
 (5, 'DispatchWorker-4', 'REQ-KA-3001-01', 'ERROR', 'MISSION_ABORT', 'DDUS 48.6 < 60 and storm index 9.2 unsafe. Mission aborted.');
+

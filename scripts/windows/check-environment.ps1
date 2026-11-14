@@ -1,4 +1,4 @@
-﻿# ==============================================================================
+# ==============================================================================
 # DISASTER RELIEF SUPPLY & EMERGENCY MEDICAL LOGISTICS DISPATCH SYSTEM (DREMLDS)
 # Windows 11 Environment & Dependency Verification Script
 # ==============================================================================

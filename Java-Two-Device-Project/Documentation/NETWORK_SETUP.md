@@ -154,3 +154,4 @@ window.APP_CONFIG = {
 ### Issue 3: IP Address Changed After Reconnecting
 - When laptops reconnect to Wi-Fi, the DHCP server may assign a new IP address.
   - **Fix:** Re-run `find-ip.ps1` on Device 2 to check if the IP changed. Then in the Device 1 UI, click the top-right status badge, enter the new IP, and click OK.
+

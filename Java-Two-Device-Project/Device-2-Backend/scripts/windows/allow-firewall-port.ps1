@@ -1,4 +1,4 @@
-﻿# ==============================================================================
+# ==============================================================================
 # DREMLDS — WINDOWS DEFENDER FIREWALL CONFIGURATOR (DEVICE 2)
 # Adds an inbound rule for TCP Port 8080 so Device 1 can connect across LAN.
 # Requires Administrator privileges.
@@ -32,3 +32,4 @@ if ($existing) {
 }
 
 Write-Host "======================================================================`n" -ForegroundColor Cyan
+

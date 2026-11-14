@@ -164,3 +164,4 @@
    - Charts render without missing libraries.
    - REST API requests complete successfully over the local LAN.
    - Proof that no cloud, external API, or internet connection is used!
+

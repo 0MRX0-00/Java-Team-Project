@@ -130,3 +130,4 @@ Device 1 does not hardcode `localhost` or fixed IP addresses. It employs a two-t
 1. **Static Initializer:** `config/config.js` sets default `API_BASE_URL`.
 2. **Dynamic UI Overwrite:** Stored in browser `localStorage`. When the user enters a new IP in the UI header or Tab 9 Settings, the connection manager tests the link against `/api/health`, dynamically switches the base URL, and refreshes the dashboard without reloading the page.
 3. **Graceful Disconnect Detection:** If Device 2 is shut down or Wi-Fi drops, background health polling flags the outage within 4 seconds, turns the status badge red, and renders a prominent warning banner instructing the operator to inspect Device 2.
+

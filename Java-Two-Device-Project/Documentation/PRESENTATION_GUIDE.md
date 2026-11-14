@@ -147,3 +147,4 @@ Place the two laptops side by side on the presentation table:
 > **Answer:** *"The Dynamic Disaster Urgency Score (DDUS) uses a weighted multi-criteria normalization formula:
 > $$\text{DDUS} = \left(\frac{\text{Urgency}}{10}\right) \times 35 + \left(\frac{\text{Population}}{50,000}\right) \times 35 + \left(\frac{100 - \text{TerrainRisk}}{100}\right) \times 30$$
 > If DDUS $\ge 90.0$, the mission is classified as **PRIORITY_ALPHA**; between $75.0$ and $89.9$ is **PRIORITY_BRAVO**; between $60.0$ and $74.9$ is **PRIORITY_CHARLIE**; below $60.0$ is **MISSION_ABORTED**."*
+

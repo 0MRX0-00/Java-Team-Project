@@ -1,4 +1,4 @@
-﻿# ==============================================================================
+# ==============================================================================
 # DREMLDS — DEVICE 2 (BACKEND) STARTUP SCRIPT (WINDOWS 11)
 # Checks MySQL connectivity, displays local IPv4, and starts Spring Boot backend.
 # ==============================================================================
@@ -80,3 +80,4 @@ if (Test-Path $jarPath) {
     Write-Host "`n Launching Spring Boot with Maven Wrapper...`n" -ForegroundColor Green
     & $mvnw spring-boot:run
 }
+
