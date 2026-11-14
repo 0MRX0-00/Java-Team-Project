@@ -2,19 +2,25 @@
  * ==============================================================================
  * DREMLDS — TWO-DEVICE NETWORK CONNECTION MANAGER (DEVICE 1)
  * Manages communication with Device 2 Backend, health monitoring,
- * dynamic IP reconfiguration, and offline/disconnect alerting.
+ * dynamic IP reconfiguration, auto-failover discovery, and offline alerting.
  * ==============================================================================
  */
 
 (function () {
     const STORAGE_KEY = 'DREMLDS_BACKEND_URL';
 
-    // Retrieve active backend base URL
+    // Retrieve active backend base URL with smart localhost/LAN detection
     window.getApiBaseUrl = function () {
         const stored = localStorage.getItem(STORAGE_KEY);
         if (stored && stored.trim().length > 0) {
             return stored.trim().replace(/\/+$/, '');
         }
+
+        // If running in browser on localhost/127.0.0.1, default to local backend on 8080
+        if (window.location && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')) {
+            return 'http://localhost:8080';
+        }
+
         if (window.APP_CONFIG && window.APP_CONFIG.API_BASE_URL) {
             return window.APP_CONFIG.API_BASE_URL.trim().replace(/\/+$/, '');
         }
@@ -26,6 +32,24 @@
         const base = window.getApiBaseUrl();
         const cleanEndpoint = endpoint.startsWith('/') ? endpoint : '/' + endpoint;
         return `${base}${cleanEndpoint}`;
+    };
+
+    // Robust fetch wrapper with timeout
+    window.apiFetch = async function (endpoint, options = {}, timeoutMs = 4000) {
+        const url = window.apiUrl(endpoint);
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+        try {
+            const res = await fetch(url, {
+                ...options,
+                signal: controller.signal
+            });
+            clearTimeout(timeoutId);
+            return res;
+        } catch (err) {
+            clearTimeout(timeoutId);
+            throw err;
+        }
     };
 
     // Update the stored Backend URL
@@ -45,19 +69,17 @@
         checkBackendHealth();
     };
 
-    // Check backend health endpoint (/api/health)
+    // Check backend health endpoint (/api/health) with AUTO-FAILOVER
     window.checkBackendHealth = async function () {
         const base = window.getApiBaseUrl();
         const healthUrl = `${base}/api/health`;
         const startTime = performance.now();
 
         const banner = document.getElementById('backend-disconnected-banner');
-        const badge = document.getElementById('network-status-badge');
-        const latencyEl = document.getElementById('network-latency');
 
         try {
             const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 4000);
+            const timeoutId = setTimeout(() => controller.abort(), 3000);
 
             const res = await fetch(healthUrl, {
                 method: 'GET',
@@ -77,18 +99,59 @@
                 updateConnectionBadge('DEGRADED', base, latency);
                 if (banner) {
                     banner.style.display = 'block';
-                    banner.innerHTML = `<strong>⚠️ Backend Degraded (HTTP ${res.status}):</strong> Connected to Device 2 at <code>${base}</code> but database or services are returning errors.`;
+                    banner.innerHTML = `<strong>Backend Degraded (HTTP ${res.status}):</strong> Connected to Device 2 at <code>${base}</code> but database or services are returning errors.`;
                 }
                 return { success: false, status: res.status };
             }
         } catch (err) {
+            // AUTO-FAILOVER PROBE: If active candidate failed, probe alternative candidates
+            const isLocal = window.location && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+            const candidateUrls = [
+                isLocal ? 'http://localhost:8080' : null,
+                (window.APP_CONFIG && window.APP_CONFIG.API_BASE_URL) ? window.APP_CONFIG.API_BASE_URL.trim().replace(/\/+$/, '') : null,
+                'http://10.1.32.17:8080',
+                'http://localhost:8080'
+            ].filter(url => url && url !== base);
+
+            for (const candidate of candidateUrls) {
+                try {
+                    const cCtrl = new AbortController();
+                    const cTimer = setTimeout(() => cCtrl.abort(), 1500);
+                    const cRes = await fetch(`${candidate}/api/health`, {
+                        method: 'GET',
+                        headers: { 'Accept': 'application/json' },
+                        signal: cCtrl.signal
+                    });
+                    clearTimeout(cTimer);
+
+                    if (cRes.ok) {
+                        const cData = await cRes.json();
+                        localStorage.setItem(STORAGE_KEY, candidate);
+                        const cLatency = Math.round(performance.now() - startTime);
+                        updateConnectionBadge('CONNECTED', candidate, cLatency, cData);
+                        if (banner) banner.style.display = 'none';
+
+                        if (typeof showToast === 'function') {
+                            showToast('Auto-Connected', `Connected to active Device 2 backend at ${candidate}!`, 'success');
+                        }
+                        if (typeof window.loadAllData === 'function') {
+                            window.loadAllData();
+                        }
+                        return { success: true, latency: cLatency, data: cData, autoSwitched: true };
+                    }
+                } catch (candidateErr) {
+                    // Try next candidate
+                }
+            }
+
+            // All candidates failed
             updateConnectionBadge('DISCONNECTED', base, null, null, err.message);
             if (banner) {
                 banner.style.display = 'block';
                 banner.innerHTML = `
                     <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
                         <div>
-                            <strong><i class="fa-solid fa-triangle-exclamation"></i> Cannot Connect to Device 2 Backend:</strong>
+                            <strong>Cannot Connect to Device 2 Backend:</strong>
                             Unable to reach <code>${base}</code>. Ensure Device 2 is running, connected to the same Wi-Fi, and firewall port 8080 is open.
                         </div>
                         <button class="btn btn-sm btn-outline-light" onclick="window.promptChangeBackendUrl()">Change IP</button>
@@ -136,7 +199,7 @@
     window.promptChangeBackendUrl = function () {
         const current = window.getApiBaseUrl();
         const newUrl = prompt(
-            "Enter Device 2 Backend URL (IPv4 address on shared Wi-Fi):\n\nExample: http://192.168.1.100:8080",
+            "Enter Device 2 Backend URL (IPv4 address on shared Wi-Fi):\n\nExample: http://10.1.32.17:8080\nOr if running locally: http://localhost:8080",
             current
         );
         if (newUrl !== null && newUrl.trim().length > 0) {
@@ -149,7 +212,6 @@
 
     // Auto-initialize on load
     document.addEventListener('DOMContentLoaded', () => {
-        // Initial health check
         window.checkBackendHealth();
 
         // Periodic background poll
@@ -159,4 +221,3 @@
         }, interval);
     });
 })();
-

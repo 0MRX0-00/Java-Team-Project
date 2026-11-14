@@ -6,3 +6,4 @@ cd /d "%~dp0"
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File "%~dp0scripts\windows\find-ip.ps1"
 echo.
 pause
+

@@ -66,34 +66,42 @@ $mimeTypes = @{
 
 try {
     while ($listener.IsListening) {
-        $context = $listener.GetContext()
-        $request = $context.Request
-        $response = $context.Response
+        try {
+            $context = $listener.GetContext()
+            $request = $context.Request
+            $response = $context.Response
 
-        $rawPath = $request.Url.LocalPath.TrimStart('/')
-        if ([string]::IsNullOrEmpty($rawPath) -or $rawPath -eq "/") {
-            $rawPath = "src/index.html"
+            $rawPath = $request.Url.LocalPath.TrimStart('/')
+            if ([string]::IsNullOrEmpty($rawPath) -or $rawPath -eq "/") {
+                $rawPath = "src/index.html"
+            }
+
+            # Normalize relative path
+            $filePath = Join-Path $scriptDir $rawPath.Replace('/', [System.IO.Path]::DirectorySeparatorChar)
+
+            if (Test-Path $filePath -PathType Leaf) {
+                $ext = [System.IO.Path]::GetExtension($filePath).ToLower()
+                $contentType = if ($mimeTypes.ContainsKey($ext)) { $mimeTypes[$ext] } else { "application/octet-stream" }
+                $response.ContentType = $contentType
+                $response.AddHeader("Access-Control-Allow-Origin", "*")
+
+                $bytes = [System.IO.File]::ReadAllBytes($filePath)
+                $response.ContentLength64 = $bytes.Length
+                if ($request.HttpMethod -ne "HEAD") {
+                    $response.OutputStream.Write($bytes, 0, $bytes.Length)
+                }
+            } else {
+                $response.StatusCode = 404
+                $errBytes = [System.Text.Encoding]::UTF8.GetBytes("404 Not Found: $rawPath")
+                $response.ContentLength64 = $errBytes.Length
+                if ($request.HttpMethod -ne "HEAD") {
+                    $response.OutputStream.Write($errBytes, 0, $errBytes.Length)
+                }
+            }
+            $response.OutputStream.Close()
+        } catch {
+            # Silently handle connection drops / pipeline breaks
         }
-
-        # Normalize relative path
-        $filePath = Join-Path $scriptDir $rawPath.Replace('/', [System.IO.Path]::DirectorySeparatorChar)
-
-        if (Test-Path $filePath -PathType Leaf) {
-            $ext = [System.IO.Path]::GetExtension($filePath).ToLower()
-            $contentType = if ($mimeTypes.ContainsKey($ext)) { $mimeTypes[$ext] } else { "application/octet-stream" }
-            $response.ContentType = $contentType
-            $response.AddHeader("Access-Control-Allow-Origin", "*")
-
-            $bytes = [System.IO.File]::ReadAllBytes($filePath)
-            $response.ContentLength64 = $bytes.Length
-            $response.OutputStream.Write($bytes, 0, $bytes.Length)
-        } else {
-            $response.StatusCode = 404
-            $errBytes = [System.Text.Encoding]::UTF8.GetBytes("404 Not Found: $rawPath")
-            $response.ContentLength64 = $errBytes.Length
-            $response.OutputStream.Write($errBytes, 0, $errBytes.Length)
-        }
-        $response.OutputStream.Close()
     }
 } finally {
     $listener.Stop()

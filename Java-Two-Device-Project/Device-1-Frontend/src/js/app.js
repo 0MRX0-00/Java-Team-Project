@@ -15,6 +15,24 @@ function apiUrl(path) {
     return path;
 }
 
+// Robust fetch helper with timeout
+async function apiFetch(endpoint, options = {}, timeoutMs = 4000) {
+    if (typeof window.apiFetch === 'function') {
+        return window.apiFetch(endpoint, options, timeoutMs);
+    }
+    const url = apiUrl(endpoint);
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+    try {
+        const res = await fetch(url, { ...options, signal: controller.signal });
+        clearTimeout(timeoutId);
+        return res;
+    } catch (err) {
+        clearTimeout(timeoutId);
+        throw err;
+    }
+}
+
 // Chart instances
 let chartEventTypes = null;
 let chartTransportCategories = null;
@@ -177,7 +195,7 @@ function initAutoRefresh() {
 }
 
 // =============================================================================
-// PHASE 1: ZONE CODE REGEX VALIDATION & LIVE URRENCY ESTIMATOR
+// PHASE 1: ZONE CODE REGEX VALIDATION & LIVE URGENCY ESTIMATOR
 // =============================================================================
 
 function initZoneCodeValidation() {
@@ -267,9 +285,9 @@ function updateUrgencyEstimator() {
     // Recommended Transport Mode
     if (transportEl) {
         if (road < 30.0 || terrain > 70.0) {
-            transportEl.textContent = dist < 120.0 && weather <= 5.0 ? '🚁 Helicopter / 🛩️ Drone' : '🚁 Heavy Cargo Helicopter';
+            transportEl.textContent = dist < 120.0 && weather <= 5.0 ? 'Helicopter / Drone' : 'Heavy Cargo Helicopter';
         } else {
-            transportEl.textContent = '🚛 Tactical Rescue Truck (4x4 / 8x8)';
+            transportEl.textContent = 'Tactical Rescue Truck (4x4 / 8x8)';
         }
     }
 
@@ -277,16 +295,16 @@ function updateUrgencyEstimator() {
     if (weatherEl) {
         if (weather > 8.5) {
             weatherEl.className = 'small fw-bold text-danger';
-            weatherEl.textContent = '⛔ Severe Storm: All Grounded';
+            weatherEl.textContent = 'Severe Storm: All Grounded';
         } else if (weather > 7.0) {
             weatherEl.className = 'small fw-bold text-warning';
-            weatherEl.textContent = '⚠️ Air Grounded (Trucks Only)';
+            weatherEl.textContent = 'Air Grounded (Trucks Only)';
         } else if (weather > 5.0) {
             weatherEl.className = 'small fw-bold text-info';
-            weatherEl.textContent = '🚁 Heli & Trucks Safe (Drone Ceiling Exceeded)';
+            weatherEl.textContent = 'Heli & Trucks Safe (Drone Ceiling Exceeded)';
         } else {
             weatherEl.className = 'small fw-bold text-success';
-            weatherEl.textContent = '✅ All Fleet Cleared for Launch';
+            weatherEl.textContent = 'All Fleet Cleared for Launch';
         }
     }
 }
@@ -422,13 +440,13 @@ function updatePayloadMeter(weightKg) {
     if (recVehicle) {
         if (weightKg <= 65) {
             recVehicle.className = 'badge bg-success text-light';
-            recVehicle.textContent = '🛩️ Rapid Medical Drone (< 65 KG)';
+            recVehicle.textContent = 'Rapid Medical Drone (< 65 KG)';
         } else if (weightKg <= 5500) {
             recVehicle.className = 'badge bg-info text-dark';
-            recVehicle.textContent = '🚁 Heavy Cargo Helicopter (< 5,500 KG)';
+            recVehicle.textContent = 'Heavy Cargo Helicopter (< 5,500 KG)';
         } else {
             recVehicle.className = 'badge bg-warning text-dark';
-            recVehicle.textContent = '🚛 Tactical Rescue Truck (< 8,500 KG)';
+            recVehicle.textContent = 'Tactical Rescue Truck (< 8,500 KG)';
         }
     }
 }
@@ -576,7 +594,7 @@ window.viewReportInConsole = async function (reportType) {
     }
 
     try {
-        const res = await fetch(apiUrl(target.url));
+        const res = await apiFetch(target.url);
         if (res.ok) {
             const text = await res.text();
             if (bodyEl) bodyEl.textContent = text || '(Report file is empty)';
@@ -621,8 +639,8 @@ window.loadAllData = function () {
 async function loadDashboardData(silent = false) {
     try {
         const [statsRes, chartsRes] = await Promise.all([
-            fetch(apiUrl('/api/dashboard/statistics')),
-            fetch(apiUrl('/api/dashboard/charts'))
+            apiFetch('/api/dashboard/statistics'),
+            apiFetch('/api/dashboard/charts')
         ]);
 
         if (statsRes.ok) {
@@ -660,7 +678,7 @@ function setCount(id, val) {
 function renderCharts(data) {
     if (!window.Chart) return;
 
-    // 1. Disaster Zone Distribution (Pie)
+    // 1. Disaster Zone Distribution (Doughnut)
     if (data.eventTypeDistribution) {
         const ctx = document.getElementById('chart-event-types');
         if (ctx) {
@@ -716,7 +734,7 @@ function renderCharts(data) {
         }
     }
 
-    // 3. Mission Priority Class Distribution (Polar/Bar)
+    // 3. Mission Priority Class Distribution (Bar)
     if (data.missionPriorityDistribution) {
         const ctx = document.getElementById('chart-mission-priorities');
         if (ctx) {
@@ -783,20 +801,36 @@ function renderCharts(data) {
 
 async function loadMissions() {
     try {
-        const res = await fetch(apiUrl('/api/missions'));
+        const res = await apiFetch('/api/missions');
         if (res.ok) {
             rawMissions = await res.json();
             renderMissionsTable();
             populateAuditMissionDropdown(rawMissions);
+        } else {
+            renderMissionsError(`HTTP ${res.status}`);
         }
     } catch (err) {
-        console.warn('Error fetching missions:', err);
+        renderMissionsError(err.message);
     }
+}
+
+function renderMissionsError(msg) {
+    const tbody = document.getElementById('missions-full-table-body');
+    const base = window.getApiBaseUrl();
+    if (tbody) {
+        tbody.innerHTML = `<tr><td colspan="10" class="text-center py-4 text-warning">
+            <i class="fa-solid fa-triangle-exclamation"></i> Cannot reach Device 2 Backend at <code>${base}</code>.<br>
+            <span class="small text-muted">${escapeHtml(msg || 'Connection error')}</span><br>
+            <button class="btn btn-sm btn-outline-info mt-2" onclick="window.promptChangeBackendUrl()"><i class="fa-solid fa-gear"></i> Change IP</button>
+            <button class="btn btn-sm btn-outline-secondary mt-2 ms-2" onclick="window.loadAllData()"><i class="fa-solid fa-rotate"></i> Retry</button>
+        </td></tr>`;
+    }
+    populateAuditMissionDropdown([]);
 }
 
 async function loadRecentMissions() {
     try {
-        const res = await fetch(apiUrl('/api/missions'));
+        const res = await apiFetch('/api/missions');
         if (res.ok) {
             const missions = await res.json();
             renderRecentMissions(missions.slice(0, 6));
@@ -896,7 +930,6 @@ function renderMissionsTable() {
 
 window.markMissionTransit = function (missionId) {
     showToast('Mission Transit', `Mission #${missionId} airborne and navigating to target coordinates.`, 'info');
-    // Switch to audit tab after small delay
     setTimeout(() => {
         window.jumpToAudit(missionId);
     }, 600);
@@ -914,20 +947,36 @@ window.jumpToAudit = function (missionId) {
 };
 
 // =============================================================================
-// DISASTER ZONES TABLE
+// DISASTER ZONES TABLE & DROPDOWNS
 // =============================================================================
 
 async function loadDisasterZones() {
     try {
-        const res = await fetch(apiUrl('/api/disasters'));
+        const res = await apiFetch('/api/disasters');
         if (res.ok) {
             rawZones = await res.json();
             renderZonesTable();
             populateZoneDropdowns(rawZones);
+        } else {
+            renderZonesError(`HTTP ${res.status}`);
         }
     } catch (err) {
-        console.warn('Error fetching zones:', err);
+        renderZonesError(err.message);
     }
+}
+
+function renderZonesError(msg) {
+    const tbody = document.getElementById('zones-table-body');
+    const base = window.getApiBaseUrl();
+    if (tbody) {
+        tbody.innerHTML = `<tr><td colspan="9" class="text-center py-4 text-warning">
+            <i class="fa-solid fa-triangle-exclamation"></i> Cannot reach Device 2 Backend at <code>${base}</code>.<br>
+            <span class="small text-muted">${escapeHtml(msg || 'Connection error')}</span><br>
+            <button class="btn btn-sm btn-outline-info mt-2" onclick="window.promptChangeBackendUrl()"><i class="fa-solid fa-gear"></i> Change IP</button>
+            <button class="btn btn-sm btn-outline-secondary mt-2 ms-2" onclick="window.loadAllData()"><i class="fa-solid fa-rotate"></i> Retry</button>
+        </td></tr>`;
+    }
+    populateZoneDropdowns([]);
 }
 
 function renderZonesTable() {
@@ -985,7 +1034,14 @@ function populateZoneDropdowns(zones) {
     const cargoSelect = document.getElementById('cargo-zone-id');
     const dispatchSelect = document.getElementById('dispatch-select-zone');
 
-    const options = zones.map(z => `<option value="${z.id}">${z.zoneCode} — ${z.zoneName} (${z.eventType})</option>`).join('');
+    if (!zones || zones.length === 0) {
+        const msg = '<option value="">-- No Zones Available (Backend Unreachable) --</option>';
+        if (cargoSelect) cargoSelect.innerHTML = msg;
+        if (dispatchSelect) dispatchSelect.innerHTML = msg;
+        return;
+    }
+
+    const options = zones.map(z => `<option value="${z.id}">${z.zoneCode} - ${z.zoneName} (${z.eventType})</option>`).join('');
 
     if (cargoSelect) {
         cargoSelect.innerHTML = '<option value="">-- Choose Disaster Zone --</option>' + options;
@@ -1001,13 +1057,28 @@ function populateZoneDropdowns(zones) {
 
 async function loadCargoRecords() {
     try {
-        const res = await fetch(apiUrl('/api/cargo'));
+        const res = await apiFetch('/api/cargo');
         if (res.ok) {
             rawCargo = await res.json();
             renderCargoTable(rawCargo);
+        } else {
+            renderCargoError(`HTTP ${res.status}`);
         }
     } catch (err) {
-        console.warn('Error fetching cargo records:', err);
+        renderCargoError(err.message);
+    }
+}
+
+function renderCargoError(msg) {
+    const tbody = document.getElementById('cargo-table-body');
+    const base = window.getApiBaseUrl();
+    if (tbody) {
+        tbody.innerHTML = `<tr><td colspan="8" class="text-center py-4 text-warning">
+            <i class="fa-solid fa-triangle-exclamation"></i> Cannot reach Device 2 Backend at <code>${base}</code>.<br>
+            <span class="small text-muted">${escapeHtml(msg || 'Connection error')}</span><br>
+            <button class="btn btn-sm btn-outline-info mt-2" onclick="window.promptChangeBackendUrl()"><i class="fa-solid fa-gear"></i> Change IP</button>
+            <button class="btn btn-sm btn-outline-secondary mt-2 ms-2" onclick="window.loadAllData()"><i class="fa-solid fa-rotate"></i> Retry</button>
+        </td></tr>`;
     }
 }
 
@@ -1040,7 +1111,7 @@ function renderCargoTable(cargoList) {
 
 async function loadFleetAssets() {
     try {
-        const res = await fetch(apiUrl('/api/assets'));
+        const res = await apiFetch('/api/assets');
         if (res.ok) {
             rawAssets = await res.json();
             renderFleetCards(rawAssets);
@@ -1140,7 +1211,7 @@ function renderFleetTable(assets) {
 window.toggleAssetStatus = async function (assetId, currentStatus) {
     const nextStatus = currentStatus === 'AVAILABLE' ? 'MAINTENANCE' : 'AVAILABLE';
     try {
-        const res = await fetch(apiUrl(`/api/assets/${assetId}?status=${nextStatus}`), { method: 'PUT' });
+        const res = await apiFetch(`/api/assets/${assetId}?status=${nextStatus}`, { method: 'PUT' });
         if (res.ok) {
             showToast('Asset Updated', `Asset #${assetId} status set to: ${nextStatus}`, 'success');
             loadFleetAssets();
@@ -1161,12 +1232,18 @@ function populateAuditMissionDropdown(missions) {
     const select = document.getElementById('audit-mission-id');
     if (!select) return;
 
+    if (!missions || missions.length === 0) {
+        select.innerHTML = '<option value="">-- No Missions Available (Backend Unreachable) --</option>';
+        return;
+    }
+
     // Filter missions that can be audited (DISPATCHED, IN_TRANSIT, or COMPLETED)
     const auditable = missions.filter(m => m.status === 'DISPATCHED' || m.status === 'IN_TRANSIT' || m.status === 'COMPLETED');
+    const listToUse = auditable.length > 0 ? auditable : missions;
 
     select.innerHTML = '<option value="">-- Choose Assigned Mission --</option>' +
-        auditable.map(m => `<option value="${m.id}" data-zone="${m.zoneCode || m.disasterZoneId}" data-duration="${m.estimatedDurationMin || 60}">
-            ${m.missionCode} — Zone: ${m.zoneCode || m.disasterZoneId} [${m.status}]
+        listToUse.map(m => `<option value="${m.id}" data-zone="${m.zoneCode || m.disasterZoneId}" data-duration="${m.estimatedDurationMin || 60}">
+            ${m.missionCode} - Zone: ${m.zoneCode || m.disasterZoneId} [${m.status}]
         </option>`).join('');
 
     select.addEventListener('change', () => {
@@ -1197,7 +1274,7 @@ window.autoFillAuditPerfect = function () {
 
 async function loadAuditConfirmations() {
     try {
-        const res = await fetch(apiUrl('/api/missions/confirmations/all'));
+        const res = await apiFetch('/api/missions/confirmations/all');
         if (res.ok) {
             const list = await res.json();
             renderConfirmationsTable(list);
@@ -1237,7 +1314,7 @@ function renderConfirmationsTable(list) {
 
 async function loadDispatchLogs() {
     try {
-        const res = await fetch(apiUrl('/api/reports/dispatch-logs?limit=50'));
+        const res = await apiFetch('/api/reports/dispatch-logs?limit=50');
         if (res.ok) {
             const logs = await res.json();
             renderDispatchLogs(logs);
@@ -1294,7 +1371,7 @@ function initEventHandlers() {
             };
 
             try {
-                const res = await fetch(apiUrl('/api/disasters'), {
+                const res = await apiFetch('/api/disasters', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(body)
@@ -1321,8 +1398,14 @@ function initEventHandlers() {
     if (formCargo) {
         formCargo.addEventListener('submit', async (e) => {
             e.preventDefault();
+            const zoneVal = document.getElementById('cargo-zone-id').value;
+            if (!zoneVal) {
+                showToast('Zone Required', 'Please select a disaster zone first.', 'warning');
+                return;
+            }
+
             const body = {
-                disasterZoneId: parseInt(document.getElementById('cargo-zone-id').value),
+                disasterZoneId: parseInt(zoneVal),
                 foodKitCount: parseInt(document.getElementById('cargo-food').value),
                 waterKitCount: parseInt(document.getElementById('cargo-water').value),
                 plasmaKitCount: parseInt(document.getElementById('cargo-plasma').value),
@@ -1333,7 +1416,7 @@ function initEventHandlers() {
             };
 
             try {
-                const res = await fetch(apiUrl('/api/cargo'), {
+                const res = await apiFetch('/api/cargo', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(body)
@@ -1365,7 +1448,7 @@ function initEventHandlers() {
 
             animateWorkerChips(true);
             try {
-                const res = await fetch(apiUrl(`/api/dispatch/${zoneId}`), { method: 'POST' });
+                const res = await apiFetch(`/api/dispatch/${zoneId}`, { method: 'POST' });
                 if (res.ok) {
                     const r = await res.json();
                     displayDispatchOutcome(r);
@@ -1394,11 +1477,11 @@ function initEventHandlers() {
 
             try {
                 // Get all active disaster zones
-                const zonesRes = await fetch(apiUrl('/api/disasters'));
+                const zonesRes = await apiFetch('/api/disasters');
                 const zones = await zonesRes.json();
                 const ids = zones.map(z => z.id);
 
-                const res = await fetch(apiUrl('/api/dispatch/bulk'), {
+                const res = await apiFetch('/api/dispatch/bulk', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(ids)
@@ -1445,7 +1528,7 @@ function initEventHandlers() {
             };
 
             try {
-                const res = await fetch(apiUrl(`/api/missions/${missionId}/audit`), {
+                const res = await apiFetch(`/api/missions/${missionId}/audit`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(body)
@@ -1474,7 +1557,7 @@ function initEventHandlers() {
         btnCsv.addEventListener('click', async () => {
             showToast('Ingesting CSV', 'Reading data/relief_requests.csv into database...', 'info');
             try {
-                const res = await fetch(apiUrl('/api/import/csv'), { method: 'POST' });
+                const res = await apiFetch('/api/import/csv', { method: 'POST' });
                 if (res.ok) {
                     const r = await res.json();
                     showToast('CSV Ingested', `Processed: ${r.recordsProcessed} | Created: ${r.recordsCreated} | Skipped: ${r.recordsSkipped}`, 'success');
