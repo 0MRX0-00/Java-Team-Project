@@ -1,5 +1,5 @@
-﻿# ==============================================================================
-# DREMLDS — DEVICE 2 (BACKEND) STARTUP SCRIPT (WINDOWS 11)
+# ==============================================================================
+# DREMLDS -- DEVICE 2 (BACKEND) STARTUP SCRIPT (WINDOWS 11 / 10)
 # Checks MySQL connectivity, displays local IPv4, and starts Spring Boot backend.
 # ==============================================================================
 
@@ -31,7 +31,7 @@ if (Test-Path $envFile) {
 }
 
 Write-Host "======================================================================" -ForegroundColor Cyan
-Write-Host " DREMLDS — Starting Device 2 Backend & Database Server" -ForegroundColor Cyan
+Write-Host " DREMLDS -- Starting Device 2 Backend & Database Server" -ForegroundColor Cyan
 Write-Host "======================================================================" -ForegroundColor Cyan
 
 # 2. Detect and print local IPv4 address
@@ -41,7 +41,8 @@ $adapters = Get-NetIPAddress -AddressFamily IPv4 | Where-Object {
 if ($adapters) {
     Write-Host " Device 2 IPv4 Address(es):" -ForegroundColor Green
     foreach ($adapter in $adapters) {
-        Write-Host "   -> http://$($adapter.IPAddress):8080" -ForegroundColor Yellow
+        $url = "http://" + $adapter.IPAddress + ":8080"
+        Write-Host "   -> $url" -ForegroundColor Yellow
     }
 } else {
     Write-Host " [WARNING] No external Wi-Fi IP detected. Using localhost." -ForegroundColor Yellow
@@ -86,4 +87,3 @@ if (Test-Path $jarPath) {
     Write-Host ""
     & $mvnw spring-boot:run
 }
-

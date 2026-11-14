@@ -1,5 +1,5 @@
-﻿# ==============================================================================
-# DREMLDS — DEVICE 1 (FRONTEND) STARTUP SCRIPT (WINDOWS 11)
+# ==============================================================================
+# DREMLDS -- DEVICE 1 (FRONTEND) STARTUP SCRIPT (WINDOWS 11 / 10)
 # Starts a lightweight zero-dependency local web server on port 3000
 # using Windows native .NET HttpListener and launches the browser.
 # ==============================================================================
@@ -12,7 +12,7 @@ $scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 Set-Location $scriptDir
 
 Write-Host "======================================================================" -ForegroundColor Cyan
-Write-Host " DREMLDS — Starting Device 1 Frontend Command Center (Windows 11)" -ForegroundColor Cyan
+Write-Host " DREMLDS -- Starting Device 1 Frontend Command Center (Windows 11)" -ForegroundColor Cyan
 Write-Host "======================================================================" -ForegroundColor Cyan
 
 # Check if config/config.js has been configured
@@ -43,7 +43,7 @@ $listener.Prefixes.Add("http://127.0.0.1:$Port/")
 try {
     $listener.Start()
 } catch {
-    Write-Host " [WARNING] Could not bind dual loopback prefixes ($($_.Exception.Message)). Falling back to port $Port single listener." -ForegroundColor Yellow
+    Write-Host " [WARNING] Could not bind dual loopback prefixes. Falling back to port $Port single listener." -ForegroundColor Yellow
     $listener = New-Object System.Net.HttpListener
     $listener.Prefixes.Add("http://localhost:$Port/")
     $listener.Start()
@@ -98,4 +98,3 @@ try {
     Write-Host ""
     Write-Host "Frontend server stopped." -ForegroundColor Yellow
 }
-

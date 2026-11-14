@@ -1,10 +1,10 @@
-﻿# ==============================================================================
-# DREMLDS — DEVICE 2 IP ADDRESS DETECTOR (WINDOWS 11 / 10)
+# ==============================================================================
+# DREMLDS - DEVICE 2 IP ADDRESS DETECTOR (WINDOWS 11 / 10)
 # Detects local IPv4 addresses and displays the exact URL to enter on Device 1
 # ==============================================================================
 
 Write-Host "======================================================================" -ForegroundColor Cyan
-Write-Host " DREMLDS — Device 2 (Backend) Local Network IP Detector" -ForegroundColor Cyan
+Write-Host " DREMLDS - Device 2 (Backend) Local Network IP Detector" -ForegroundColor Cyan
 Write-Host "======================================================================" -ForegroundColor Cyan
 Write-Host ""
 
@@ -16,10 +16,12 @@ if ($adapters) {
     Write-Host "Found active IPv4 address(es) on Device 2:" -ForegroundColor Green
     Write-Host ""
     foreach ($adapter in $adapters) {
+        $ip = $adapter.IPAddress
         $alias = (Get-NetIPInterface -InterfaceIndex $adapter.InterfaceIndex -AddressFamily IPv4).InterfaceAlias
+        $backendUrl = "http://" + $ip + ":8080"
         Write-Host "   Adapter: [$alias]" -ForegroundColor Yellow
-        Write-Host "   IPv4 Address: $($adapter.IPAddress)" -ForegroundColor White
-        Write-Host "   ===> Backend URL for Device 1: http://$($adapter.IPAddress):8080" -ForegroundColor Cyan
+        Write-Host "   IPv4 Address: $ip" -ForegroundColor White
+        Write-Host "   ===> Backend URL for Device 1: $backendUrl" -ForegroundColor Cyan
         Write-Host ""
     }
     Write-Host "----------------------------------------------------------------------" -ForegroundColor Gray

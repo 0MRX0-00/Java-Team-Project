@@ -4,7 +4,7 @@
 # ==============================================================================
 
 Write-Host "======================================================================" -ForegroundColor Cyan
-Write-Host " DREMLDS — Windows 11 Environment Diagnostics" -ForegroundColor Cyan
+Write-Host " DREMLDS -- Windows 11 Environment Diagnostics" -ForegroundColor Cyan
 Write-Host "======================================================================" -ForegroundColor Cyan
 
 # Load .env file if present
@@ -25,20 +25,20 @@ if (Test-Path $envPath) {
 
 $allPass = $true
 
-# 1. Check Java JDK
+# 1. Check Java JDK (Must be 17 or 21)
 Write-Host "`n[1/5] Checking Java Development Kit..." -NoNewline
 try {
     $javaVer = java -version 2>&1 | Out-String
-    if ($LASTEXITCODE -eq 0 -or $javaVer -match "version") {
+    if ($javaVer -match 'version "(17|21)') {
         Write-Host " [OK]" -ForegroundColor Green
-        Write-Host "   $($javaVer.Split([Environment]::NewLine)[0])" -ForegroundColor Gray
+        Write-Host "   java : $($javaVer.Split([Environment]::NewLine)[0])" -ForegroundColor Gray
     } else {
-        Write-Host " [FAIL]" -ForegroundColor Red
-        $allPass = $false
+        Write-Host " [WARNING]" -ForegroundColor Yellow
+        Write-Host "   Found Java, but expected JDK 17 or 21: $($javaVer.Split([Environment]::NewLine)[0])" -ForegroundColor Yellow
     }
 } catch {
     Write-Host " [NOT FOUND]" -ForegroundColor Red
-    Write-Host "   Java is not on PATH. Please install Java JDK 17 or 21." -ForegroundColor Yellow
+    Write-Host "   Java is not installed or not in PATH." -ForegroundColor Red
     $allPass = $false
 }
 
@@ -49,8 +49,8 @@ if (Test-Path $mvnwPath) {
     Write-Host " [OK]" -ForegroundColor Green
     Write-Host "   Found Maven Wrapper at: $mvnwPath" -ForegroundColor Gray
 } else {
-    Write-Host " [FAIL]" -ForegroundColor Red
-    Write-Host "   mvnw.cmd missing from project root." -ForegroundColor Yellow
+    Write-Host " [MISSING]" -ForegroundColor Red
+    Write-Host "   mvnw.cmd not found in project root." -ForegroundColor Red
     $allPass = $false
 }
 
@@ -70,7 +70,7 @@ try {
         Write-Host "   (Note: Application and tests will automatically run with embedded in-memory database)" -ForegroundColor Gray
     }
 } catch {
-    Write-Host " [SKIP]" -ForegroundColor Gray
+    Write-Host " [UNABLE TO CHECK]" -ForegroundColor Yellow
 }
 
 # 4. Check Environment Variables
@@ -99,4 +99,3 @@ if ($allPass) {
 }
 Write-Host "======================================================================" -ForegroundColor Cyan
 Write-Host ""
-

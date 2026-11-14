@@ -1,5 +1,5 @@
-﻿# ==============================================================================
-# DREMLDS — WINDOWS DEFENDER FIREWALL CONFIGURATOR (DEVICE 2)
+# ==============================================================================
+# DREMLDS -- WINDOWS DEFENDER FIREWALL CONFIGURATOR (DEVICE 2)
 # Adds an inbound rule for TCP Port 8080 so Device 1 can connect across LAN.
 # ==============================================================================
 
@@ -32,9 +32,9 @@ if (-not $isAdmin) {
     Write-Host ""
 
     try {
-        # Trigger elevated PowerShell process to add the rule
-        $elevatedCommand = "netsh advfirewall firewall add rule name=`"$ruleName`" dir=in action=allow protocol=TCP localport=8080"
-        Start-Process powershell.exe -Verb RunAs -ArgumentList "-NoProfile -Command $elevatedCommand" -Wait
+        # Trigger elevated netsh command to add the rule
+        $netshCmd = "netsh advfirewall firewall add rule name=`"$ruleName`" dir=in action=allow protocol=TCP localport=8080"
+        Start-Process powershell.exe -Verb RunAs -ArgumentList "-NoProfile -Command $netshCmd" -Wait
 
         # Verify whether rule was successfully added
         $check = Get-NetFirewallRule -DisplayName $ruleName -ErrorAction SilentlyContinue
@@ -61,7 +61,6 @@ if (-not $isAdmin) {
             -ErrorAction Stop | Out-Null
         Write-Host " [SUCCESS] Inbound rule for TCP Port 8080 created successfully!" -ForegroundColor Green
     } catch {
-        # Fallback to netsh
         try {
             netsh advfirewall firewall add rule name="$ruleName" dir=in action=allow protocol=TCP localport=8080 | Out-Null
             Write-Host " [SUCCESS] Inbound rule for TCP Port 8080 created via netsh!" -ForegroundColor Green

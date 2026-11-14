@@ -1,5 +1,5 @@
 # ==============================================================================
-# DREMLDS — RUN AUTOMATED TEST SUITE (DEVICE 2 BACKEND)
+# DREMLDS -- RUN AUTOMATED TEST SUITE (DEVICE 2 BACKEND)
 # Runs all 47 JUnit 5 & Mockito automated tests via Maven Wrapper.
 # ==============================================================================
 
@@ -13,4 +13,3 @@ Write-Host "====================================================================
 
 $mvnw = Join-Path $backendRoot "mvnw.cmd"
 & $mvnw test
-
