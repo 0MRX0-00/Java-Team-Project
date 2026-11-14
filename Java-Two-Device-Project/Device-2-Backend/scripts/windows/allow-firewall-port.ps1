@@ -1,20 +1,54 @@
-# ==============================================================================
+﻿# ==============================================================================
 # DREMLDS — WINDOWS DEFENDER FIREWALL CONFIGURATOR (DEVICE 2)
 # Adds an inbound rule for TCP Port 8080 so Device 1 can connect across LAN.
-# Requires Administrator privileges.
 # ==============================================================================
 
 Write-Host "======================================================================" -ForegroundColor Cyan
 Write-Host " Configuring Windows Defender Firewall for Port 8080" -ForegroundColor Cyan
 Write-Host "======================================================================" -ForegroundColor Cyan
+Write-Host ""
 
 $ruleName = "DREMLDS Backend REST API (Port 8080)"
 
-# Check if rule exists
-$existing = Get-NetFirewallRule -DisplayName $ruleName -ErrorAction SilentlyContinue
+# 1. Check if the rule already exists
+try {
+    $existing = Get-NetFirewallRule -DisplayName $ruleName -ErrorAction SilentlyContinue
+    if ($existing) {
+        Write-Host " [OK] Firewall rule '$ruleName' is already configured and active." -ForegroundColor Green
+        Write-Host " Device 1 can connect to port 8080 over your local network." -ForegroundColor Green
+        Write-Host "======================================================================" -ForegroundColor Cyan
+        exit 0
+    }
+} catch {
+    # Proceed to check admin
+}
 
-if ($existing) {
-    Write-Host " [OK] Firewall rule '$ruleName' already exists and is active." -ForegroundColor Green
+# 2. Check if running with Administrator privileges
+$isAdmin = ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
+
+if (-not $isAdmin) {
+    Write-Host " [ELEVATION REQUIRED] Modifying Windows Firewall requires Administrator rights." -ForegroundColor Yellow
+    Write-Host " Requesting Administrator elevation via Windows UAC prompt..." -ForegroundColor Cyan
+    Write-Host ""
+
+    try {
+        # Trigger elevated PowerShell process to add the rule
+        $elevatedCommand = "netsh advfirewall firewall add rule name=`"$ruleName`" dir=in action=allow protocol=TCP localport=8080"
+        Start-Process powershell.exe -Verb RunAs -ArgumentList "-NoProfile -Command $elevatedCommand" -Wait
+
+        # Verify whether rule was successfully added
+        $check = Get-NetFirewallRule -DisplayName $ruleName -ErrorAction SilentlyContinue
+        if ($check) {
+            Write-Host " [SUCCESS] Firewall rule successfully added via elevated prompt!" -ForegroundColor Green
+        } else {
+            Write-Host " [INFO] If UAC prompt was approved, port 8080 is now open." -ForegroundColor Green
+        }
+    } catch {
+        Write-Host " [WARNING] Could not automatically elevate prompt: $($_.Exception.Message)" -ForegroundColor Yellow
+        Write-Host ""
+        Write-Host " To add the rule manually, open PowerShell AS ADMINISTRATOR and run:" -ForegroundColor White
+        Write-Host "   netsh advfirewall firewall add rule name=`"$ruleName`" dir=in action=allow protocol=TCP localport=8080" -ForegroundColor Cyan
+    }
 } else {
     try {
         New-NetFirewallRule -DisplayName $ruleName `
@@ -23,13 +57,19 @@ if ($existing) {
             -Protocol TCP `
             -Action Allow `
             -Profile Any `
-            -Description "Allows Device 1 Frontend to communicate with DREMLDS Backend on Device 2" | Out-Null
+            -Description "Allows Device 1 Frontend to communicate with DREMLDS Backend on Device 2" `
+            -ErrorAction Stop | Out-Null
         Write-Host " [SUCCESS] Inbound rule for TCP Port 8080 created successfully!" -ForegroundColor Green
     } catch {
-        Write-Host " [WARNING] Could not create firewall rule: $($_.Exception.Message)" -ForegroundColor Yellow
-        Write-Host " If not running as Administrator, please right-click PowerShell, select 'Run as Administrator', and re-run this script." -ForegroundColor Yellow
+        # Fallback to netsh
+        try {
+            netsh advfirewall firewall add rule name="$ruleName" dir=in action=allow protocol=TCP localport=8080 | Out-Null
+            Write-Host " [SUCCESS] Inbound rule for TCP Port 8080 created via netsh!" -ForegroundColor Green
+        } catch {
+            Write-Host " [ERROR] Failed to create rule: $($_.Exception.Message)" -ForegroundColor Red
+        }
     }
 }
 
-Write-Host "======================================================================`n" -ForegroundColor Cyan
-
+Write-Host ""
+Write-Host "======================================================================" -ForegroundColor Cyan

@@ -1,4 +1,4 @@
-# ==============================================================================
+﻿# ==============================================================================
 # DREMLDS — DEVICE 2 (BACKEND) STARTUP SCRIPT (WINDOWS 11)
 # Checks MySQL connectivity, displays local IPv4, and starts Spring Boot backend.
 # ==============================================================================
@@ -51,7 +51,8 @@ if ($adapters) {
 $dbHost = if ($env:DB_HOST) { $env:DB_HOST } else { "localhost" }
 $dbPort = if ($env:DB_PORT) { [int]$env:DB_PORT } else { 3307 }
 
-Write-Host "`n Checking MySQL Database on ${dbHost}:${dbPort}..." -NoNewline
+Write-Host ""
+Write-Host " Checking MySQL Database on ${dbHost}:${dbPort}..." -NoNewline
 try {
     $tcp = Test-NetConnection -ComputerName $dbHost -Port $dbPort -WarningAction SilentlyContinue
     if ($tcp.TcpTestSucceeded) {
@@ -69,15 +70,20 @@ $jarPath = Join-Path $backendRoot "target\disaster-relief-dispatch-1.0.0.jar"
 $mvnw = Join-Path $backendRoot "mvnw.cmd"
 
 if ($BuildFirst -or (-not (Test-Path $jarPath))) {
-    Write-Host "`n Building executable JAR package with Maven Wrapper..." -ForegroundColor Cyan
+    Write-Host ""
+    Write-Host " Building executable JAR package with Maven Wrapper..." -ForegroundColor Cyan
     & $mvnw clean package -DskipTests
 }
 
 if (Test-Path $jarPath) {
-    Write-Host "`n Launching DREMLDS Backend JAR (Listening on 0.0.0.0:8080)...`n" -ForegroundColor Green
+    Write-Host ""
+    Write-Host " Launching DREMLDS Backend JAR (Listening on 0.0.0.0:8080)..." -ForegroundColor Green
+    Write-Host ""
     java -jar $jarPath
 } else {
-    Write-Host "`n Launching Spring Boot with Maven Wrapper...`n" -ForegroundColor Green
+    Write-Host ""
+    Write-Host " Launching Spring Boot with Maven Wrapper..." -ForegroundColor Green
+    Write-Host ""
     & $mvnw spring-boot:run
 }
 
